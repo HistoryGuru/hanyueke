@@ -3109,46 +3109,7 @@ body{font-family:"Noto Serif",serif;color:#1C1814;padding:2cm;max-width:800px;ma
 .ws-answer-line{border-bottom:1px solid #E8DFD0;height:.7cm;margin:4px 0;}
 .ws-passage{background:#FBF8F3;border:1px solid #E8DFD0;padding:.4cm .6cm;font-size:10pt;line-height:2;margin-bottom:.5cm;font-family:"Noto Serif SC",serif;}
 @media print{body{padding:1.5cm;}@page{margin:1.5cm;}}
-</style></head><body>${window._lastDocHTML||''}
-<!-- ── Paste & Detect Modal ── -->
-<div class="paste-overlay" id="paste-overlay">
-  <div class="paste-modal">
-    <div class="paste-modal-head">
-      <div class="paste-modal-hanzi">貼</div>
-      <div>
-        <div class="paste-modal-title">Paste &amp; Detect</div>
-        <div class="paste-modal-sub">Paste text in any format — Claude extracts the vocabulary automatically</div>
-      </div>
-    </div>
-    <div class="paste-modal-body">
-      <div class="paste-examples">
-        Works with any format, for example:<br>
-        家 jiā family &nbsp;·&nbsp; 学校 xuéxiào school<br>
-        1. 水 (shuǐ) — water &nbsp;·&nbsp; 火 (huǒ) — fire<br>
-        家=family, 学校=school &nbsp;·&nbsp; or just Chinese characters alone
-      </div>
-      <textarea class="paste-textarea" id="paste-input"
-        placeholder="Paste your vocab list here in any format…&#10;&#10;e.g.&#10;家 jiā family&#10;学校 xuéxiào school&#10;水 shuǐ water"></textarea>
-
-      <!-- Preview after detection -->
-      <div class="paste-preview" id="paste-preview">
-        <div class="paste-preview-label">Detected Words — remove any mistakes before adding</div>
-        <table class="paste-table">
-          <thead><tr><th>#</th><th>漢字</th><th>Pinyin</th><th>English</th><th></th></tr></thead>
-          <tbody id="paste-preview-body"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="paste-modal-foot">
-      <div class="paste-status" id="paste-status"></div>
-      <button class="btn-paste-cancel" onclick="closePasteModal()">取消 Cancel</button>
-      <button class="btn-paste-detect" id="btn-paste-detect" onclick="runPasteDetect()">識別 Detect</button>
-      <button class="btn-paste-add" id="btn-paste-add" onclick="addDetectedWords()">加入全部 Add All</button>
-    </div>
-  </div>
-</div>
-
-</body></html>`);
+</style></head><body>${window._lastDocHTML||''}</body></html>`);
     w.document.close();
     setTimeout(()=>w.print(),600);
   }
@@ -3526,6 +3487,44 @@ ${text}`;
       </div>
     </div>
     <div class="out-body" id="out-body"></div>
+  </div>
+</div>
+
+<!-- ── Paste & Detect Modal ── -->
+<div class="paste-overlay" id="paste-overlay">
+  <div class="paste-modal">
+    <div class="paste-modal-head">
+      <div class="paste-modal-hanzi">貼</div>
+      <div>
+        <div class="paste-modal-title">Paste &amp; Detect</div>
+        <div class="paste-modal-sub">Paste text in any format — Claude extracts the vocabulary automatically</div>
+      </div>
+    </div>
+    <div class="paste-modal-body">
+      <div class="paste-examples">
+        Works with any format, for example:<br>
+        家 jiā family &nbsp;·&nbsp; 学校 xuéxiào school<br>
+        1. 水 (shuǐ) — water &nbsp;·&nbsp; 火 (huǒ) — fire<br>
+        家=family, 学校=school &nbsp;·&nbsp; or just Chinese characters alone
+      </div>
+      <textarea class="paste-textarea" id="paste-input"
+        placeholder="Paste your vocab list here in any format…&#10;&#10;e.g.&#10;家 jiā family&#10;学校 xuéxiào school&#10;水 shuǐ water"></textarea>
+
+      <!-- Preview after detection -->
+      <div class="paste-preview" id="paste-preview">
+        <div class="paste-preview-label">Detected Words — remove any mistakes before adding</div>
+        <table class="paste-table">
+          <thead><tr><th>#</th><th>漢字</th><th>Pinyin</th><th>English</th><th></th></tr></thead>
+          <tbody id="paste-preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="paste-modal-foot">
+      <div class="paste-status" id="paste-status"></div>
+      <button class="btn-paste-cancel" onclick="closePasteModal()">取消 Cancel</button>
+      <button class="btn-paste-detect" id="btn-paste-detect" onclick="runPasteDetect()">識別 Detect</button>
+      <button class="btn-paste-add" id="btn-paste-add" onclick="addDetectedWords()">加入全部 Add All</button>
+    </div>
   </div>
 </div>
 
