@@ -6,6 +6,7 @@ import fetch from 'node-fetch';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
+import { createClient as createSbClient } from '@supabase/supabase-js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app  = express();
@@ -102,8 +103,6 @@ app.get('/api/config', (_req, res) => {
 });
 
 // ── Supabase admin client (uses service role key — never sent to browser) ──
-import { createClient as createSbClient } from '@supabase/supabase-js';
-
 function adminDb() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
@@ -214,6 +213,104 @@ app.get('/api/classroom/points', async (req, res) => {
       .from('points').select('student_id, amount, awarded_at').eq('classroom_id', classroom_id);
     if (error) throw error;
     return res.json({ points: data });
+  } catch(e) { return res.status(500).json({ error: e.message }); }
+});
+
+
+// ── Stream routes ─────────────────────────────────────────────
+
+// POST /api/stream/post — teacher creates announcement or assignment
+app.post('/api/stream/post', async (req, res) => {
+  try {
+    const { classroom_id, teacher_id, type, title, body, due_date, content_json, word_set_name } = req.body;
+    if (!classroom_id || !teacher_id || !type || !title)
+      return res.status(400).json({ error: 'classroom_id, teacher_id, type, title required' });
+    const db = adminDb();
+
+    // Insert the post
+    const { data: post, error: postErr } = await db.from('stream_posts')
+      .insert({ classroom_id, teacher_id, type, title, body: body||'', due_date: due_date||null, content_json: content_json||null, word_set_name: word_set_name||'' })
+      .select().single();
+    if (postErr) throw postErr;
+
+    // Auto-create submission rows for all enrolled students
+    const { data: enrollments } = await db.from('enrollments')
+      .select('student_id').eq('classroom_id', classroom_id);
+    if (enrollments && enrollments.length) {
+      await db.from('submissions').insert(
+        enrollments.map(e => ({ post_id: post.id, student_id: e.student_id, status: 'assigned' }))
+      );
+    }
+    return res.json({ post });
+  } catch(e) { return res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/stream?classroom_id=uuid — get stream posts (newest first)
+app.get('/api/stream', async (req, res) => {
+  try {
+    const { classroom_id } = req.query;
+    if (!classroom_id) return res.status(400).json({ error: 'classroom_id required' });
+    const db = adminDb();
+    const { data, error } = await db.from('stream_posts')
+      .select('*, profiles(display_name)')
+      .eq('classroom_id', classroom_id)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return res.json({ posts: data });
+  } catch(e) { return res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/stream/homework?student_id=uuid&classroom_id=uuid — student homework list
+app.get('/api/stream/homework', async (req, res) => {
+  try {
+    const { student_id, classroom_id } = req.query;
+    if (!student_id) return res.status(400).json({ error: 'student_id required' });
+    const db = adminDb();
+    let query = db.from('submissions')
+      .select('status, grade, score, submitted_at, stream_posts(id, title, type, due_date, classroom_id, classrooms(name))')
+      .eq('student_id', student_id);
+    if (classroom_id) query = query.eq('stream_posts.classroom_id', classroom_id);
+    const { data, error } = await query.order('stream_posts(due_date)', { ascending: true });
+    if (error) throw error;
+    return res.json({ homework: data });
+  } catch(e) { return res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/stream/posts-with-submissions?classroom_id=uuid — teacher sees all posts + submission counts
+app.get('/api/stream/posts-with-submissions', async (req, res) => {
+  try {
+    const { classroom_id } = req.query;
+    if (!classroom_id) return res.status(400).json({ error: 'classroom_id required' });
+    const db = adminDb();
+    const { data: posts, error } = await db.from('stream_posts')
+      .select('*, submissions(status, student_id, grade, score, profiles(display_name))')
+      .eq('classroom_id', classroom_id)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return res.json({ posts });
+  } catch(e) { return res.status(500).json({ error: e.message }); }
+});
+
+// PATCH /api/stream/grade — teacher grades a submission
+app.patch('/api/stream/grade', async (req, res) => {
+  try {
+    const { post_id, student_id, grade, score } = req.body;
+    const db = adminDb();
+    const { error } = await db.from('submissions')
+      .update({ grade, score, status: 'graded', graded_at: new Date().toISOString() })
+      .eq('post_id', post_id).eq('student_id', student_id);
+    if (error) throw error;
+    return res.json({ ok: true });
+  } catch(e) { return res.status(500).json({ error: e.message }); }
+});
+
+// DELETE /api/stream/post/:id — teacher deletes a post
+app.delete('/api/stream/post/:id', async (req, res) => {
+  try {
+    const db = adminDb();
+    const { error } = await db.from('stream_posts').delete().eq('id', req.params.id);
+    if (error) throw error;
+    return res.json({ ok: true });
   } catch(e) { return res.status(500).json({ error: e.message }); }
 });
 
