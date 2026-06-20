@@ -1748,6 +1748,136 @@
       background:transparent; color:var(--ink-faint); border:1px solid var(--border-ink); cursor:pointer;
     }
 
+
+    /* ── Classrooms ── */
+    .classroom-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1px; background: var(--parchment-dk);
+      border: 1px solid var(--parchment-dk);
+      margin-bottom: 1.5rem;
+    }
+    .classroom-card {
+      background: var(--surface);
+      padding: 1.5rem;
+      display: flex; flex-direction: column; gap: 8px;
+      cursor: pointer; transition: background 0.15s;
+      position: relative;
+    }
+    .classroom-card:hover { background: var(--parchment-lt); }
+    .classroom-card.active-class { border-left: 3px solid var(--vermilion); }
+    .classroom-card-name {
+      font-family: "Noto Serif SC", serif;
+      font-size: 15px; color: var(--ink); letter-spacing: 0.5px;
+    }
+    .classroom-card-code {
+      font-family: "Noto Serif SC", serif;
+      font-size: 20px; letter-spacing: 6px; color: var(--vermilion);
+      border: 1px solid var(--border-gold);
+      padding: 6px 12px; text-align: center; margin: 4px 0;
+      background: var(--gold-lt);
+    }
+    .classroom-card-meta {
+      font-size: 11px; font-style: italic; color: var(--ink-faint);
+    }
+    .classroom-card-teacher {
+      font-size: 11px; color: var(--ink-faint);
+      font-family: "Noto Serif SC", serif;
+    }
+    .btn-create-class {
+      padding: 10px 20px;
+      font-family: "Noto Serif SC", serif; font-size: 11px; letter-spacing: 2px;
+      border: 1px solid var(--border-ink); background: transparent;
+      color: var(--ink-mid); cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-create-class:hover { border-color: var(--vermilion); color: var(--vermilion); background: var(--vermilion-lt); }
+
+    /* Join class modal */
+    .join-overlay {
+      position: fixed; inset: 0; background: rgba(28,24,20,0.55);
+      z-index: 200; display: none; align-items: center; justify-content: center;
+    }
+    .join-overlay.open { display: flex; }
+    .join-modal {
+      background: var(--surface); border: 1px solid var(--parchment-dk);
+      width: 400px; max-width: 95vw; padding: 2rem; position: relative;
+    }
+    .join-modal::before, .join-modal::after {
+      content: ""; position: absolute; width: 14px; height: 14px;
+      border-color: var(--gold); border-style: solid;
+    }
+    .join-modal::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+    .join-modal::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+    .join-modal-title {
+      font-family: "Noto Serif SC", serif; font-size: 16px; font-weight: 300;
+      color: var(--ink); letter-spacing: 2px; margin-bottom: 1.25rem;
+    }
+    .join-code-input {
+      width: 100%; padding: 12px 16px; text-align: center;
+      font-family: "Noto Serif SC", serif; font-size: 26px; letter-spacing: 8px;
+      border: 1px solid var(--border-ink); background: var(--parchment-lt);
+      color: var(--vermilion); outline: none; text-transform: uppercase;
+      transition: border-color 0.15s;
+    }
+    .join-code-input:focus { border-color: var(--vermilion); }
+    .join-status {
+      font-size: 12px; font-style: italic; min-height: 18px; margin-top: 8px;
+      text-align: center;
+    }
+    .join-status.err { color: var(--vermilion); }
+    .join-status.ok  { color: #2A6030; }
+    .join-modal-actions { display: flex; gap: 10px; margin-top: 1.25rem; justify-content: flex-end; }
+
+    /* Create class modal */
+    .create-class-overlay {
+      position: fixed; inset: 0; background: rgba(28,24,20,0.55);
+      z-index: 200; display: none; align-items: center; justify-content: center;
+    }
+    .create-class-overlay.open { display: flex; }
+    .create-class-modal {
+      background: var(--surface); border: 1px solid var(--parchment-dk);
+      width: 440px; max-width: 95vw; padding: 2rem; position: relative;
+    }
+    .create-class-modal::before, .create-class-modal::after {
+      content: ""; position: absolute; width: 14px; height: 14px;
+      border-color: var(--gold); border-style: solid;
+    }
+    .create-class-modal::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+    .create-class-modal::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+    .create-class-modal-title {
+      font-family: "Noto Serif SC", serif; font-size: 16px; font-weight: 300;
+      color: var(--ink); letter-spacing: 2px; margin-bottom: 1.5rem;
+    }
+    .create-class-fields { display: flex; flex-direction: column; gap: 1rem; }
+    .create-class-status {
+      font-size: 12px; font-style: italic; min-height: 18px;
+    }
+    .create-class-status.err { color: var(--vermilion); }
+    .create-class-status.ok  { color: #2A6030; }
+
+    /* Active classroom banner */
+    .active-class-banner {
+      background: var(--parchment-lt); border: 1px solid var(--parchment-dk);
+      padding: 10px 16px; margin-bottom: 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .active-class-name {
+      font-family: "Noto Serif SC", serif; font-size: 13px; color: var(--ink);
+    }
+    .btn-switch-class {
+      font-family: "Noto Serif SC", serif; font-size: 10px; letter-spacing: 1.5px;
+      padding: 4px 12px; border: 1px solid var(--border-ink);
+      background: transparent; color: var(--ink-faint); cursor: pointer;
+    }
+    .btn-switch-class:hover { color: var(--vermilion); border-color: var(--vermilion); }
+    .no-class-placeholder {
+      border: 1px dashed var(--border-gold); padding: 3rem 2rem; text-align: center;
+    }
+    .no-class-placeholder p {
+      font-size: 13px; font-style: italic; color: var(--ink-faint); margin-bottom: 1.25rem;
+    }
+
     @media (max-width: 700px) {
       .auth-card { padding: 2rem 1.25rem 1.75rem; }
       .sidebar { width: 56px; }
@@ -2248,6 +2378,43 @@
         </div>
       </div>
 
+
+      <!-- ⑩ MY CLASSES (teacher) -->
+      <div class="section-panel" id="panel-classes">
+        <div class="section-head">
+          <div class="section-head-hanzi">班</div>
+          <div class="section-head-text">
+            <h2>My Classes</h2>
+            <p>Create and manage your classrooms · 我的班級</p>
+          </div>
+        </div>
+        <div style="margin-bottom:1.5rem;">
+          <button class="btn-create-class" onclick="openCreateClassModal()">＋ 創建班級 &nbsp;Create Class</button>
+        </div>
+        <div class="classroom-grid" id="teacher-classroom-grid">
+          <div style="background:var(--surface);padding:2rem;text-align:center;font-style:italic;color:var(--ink-faint);font-size:12px;">
+            Loading…
+          </div>
+        </div>
+      </div>
+
+      <!-- Student class panel -->
+      <div class="section-panel" id="panel-myclass">
+        <div class="section-head">
+          <div class="section-head-hanzi">班</div>
+          <div class="section-head-text">
+            <h2>My Class</h2>
+            <p>Your enrolled classrooms · 我的班級</p>
+          </div>
+        </div>
+        <div id="student-class-body">
+          <div class="no-class-placeholder">
+            <p>You haven't joined a class yet.</p>
+            <button class="btn-create-class" onclick="openJoinModal()">加入班級 &nbsp;Join a Class</button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -2308,11 +2475,13 @@
       { id: 'grades',      hanzi: '績', label: 'Grades' },
       { id: 'lessons',     hanzi: '書', label: 'Lesson Library' },
       { id: 'messages',    hanzi: '信', label: 'Messages' },
+      { id: 'classes',     hanzi: '班', label: 'My Classes' },
       { id: 'wordbank',    hanzi: '詞', label: 'Word Bank' },
       { id: 'settings',    hanzi: '設', label: 'Settings' },
       { id: 'pricing',     hanzi: '價', label: 'Plans & Pricing' },
     ],
     student: [
+      { id: 'myclass',     hanzi: '班', label: 'My Class' },
       { id: 'points',      hanzi: '星', label: 'Class Points' },
       { id: 'leaderboard', hanzi: '榜', label: 'Leaderboard' },
       { id: 'homework',    hanzi: '作', label: 'Homework' },
@@ -2372,6 +2541,7 @@
   function enterDashboard(user, displayName, role) {
     const name = displayName || user?.email?.split("@")[0] || "Friend";
     currentRole = role || 'teacher';
+    currentUser = user;
     document.getElementById("dash-user-label").textContent = name;
     document.getElementById("dash-role-badge").textContent = ROLE_HANZI[currentRole] || '';
     buildNav(currentRole);
@@ -2411,6 +2581,8 @@
     if (id === 'lessons')     renderLessons();
     if (id === 'messages')    renderMessages();
     if (id === 'wordbank')   renderWordBank();
+    if (id === 'classes')    renderTeacherClasses();
+    if (id === 'myclass')    renderStudentClass();
     if (id === 'settings')   renderSettings();
     /* pricing panel is static — no render needed */
   }
@@ -3432,6 +3604,198 @@ ${text}`;
     closePasteModal();
   }
 
+
+  /* ─── Classroom System ─── */
+  let currentUser = null;
+  let activeClassroomId = null;
+  let classroomStudents = [];
+
+  // Called from enterDashboard — store user for classroom API calls
+  function setCurrentUser(user) { currentUser = user; }
+
+  /* ── Teacher: view / create classes ── */
+  async function renderTeacherClasses() {
+    if (!currentUser) return;
+    const grid = document.getElementById('teacher-classroom-grid');
+    grid.innerHTML = '<div style="background:var(--surface);padding:2rem;text-align:center;font-style:italic;color:var(--ink-faint);font-size:12px;">Loading…</div>';
+    try {
+      const res = await fetch(`/api/classroom/mine?teacher_id=${currentUser.id}`);
+      const { classrooms, error } = await res.json();
+      if (error) throw new Error(error);
+      if (!classrooms.length) {
+        grid.innerHTML = '<div style="background:var(--surface);padding:2rem;text-align:center;font-style:italic;color:var(--ink-faint);font-size:12px;">No classes yet — create your first one above.</div>';
+        return;
+      }
+      grid.innerHTML = classrooms.map(c => `
+        <div class="classroom-card ${activeClassroomId===c.id?'active-class':''}" onclick="selectClassroom('${c.id}','${c.name}')">
+          <div class="classroom-card-name">${c.name}</div>
+          ${c.description ? `<div class="classroom-card-meta">${c.description}</div>` : ''}
+          <div class="classroom-card-code">${c.code}</div>
+          <div class="classroom-card-meta">Share this code with your students</div>
+        </div>`).join('');
+
+      // Auto-select first if none selected
+      if (!activeClassroomId && classrooms.length) {
+        selectClassroom(classrooms[0].id, classrooms[0].name, false);
+      }
+    } catch(e) {
+      grid.innerHTML = `<div style="background:var(--surface);padding:2rem;color:var(--vermilion);font-size:12px;">${e.message}</div>`;
+    }
+  }
+
+  async function selectClassroom(id, name, rerender=true) {
+    activeClassroomId = id;
+    if (rerender) renderTeacherClasses();
+    // Load students for this classroom so points/leaderboard work
+    try {
+      const res = await fetch(`/api/classroom/students?classroom_id=${id}`);
+      const { students } = await res.json();
+      classroomStudents = (students||[]).map(e => ({
+        id:   e.profiles.id,
+        name: e.profiles.display_name || 'Student',
+        pts:  0, week: 0
+      }));
+      // Load points
+      const pres = await fetch(`/api/classroom/points?classroom_id=${id}`);
+      const { points } = await pres.json();
+      (points||[]).forEach(p => {
+        const s = classroomStudents.find(x => x.id === p.student_id);
+        if (s) {
+          s.pts += p.amount;
+          // count "this week" points
+          const d = new Date(p.awarded_at);
+          const now = new Date();
+          const diff = (now - d) / (1000*60*60*24);
+          if (diff <= 7) s.week += p.amount;
+        }
+      });
+    } catch(e) { console.warn('Could not load students:', e.message); }
+  }
+
+  /* ── Teacher: create class modal ── */
+  function openCreateClassModal() {
+    document.getElementById('new-class-name').value = '';
+    document.getElementById('new-class-desc').value = '';
+    document.getElementById('create-class-status').textContent = '';
+    document.getElementById('create-class-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('new-class-name').focus(), 50);
+  }
+  function closeCreateClassModal() {
+    document.getElementById('create-class-overlay').classList.remove('open');
+  }
+
+  async function submitCreateClass() {
+    const name = document.getElementById('new-class-name').value.trim();
+    const desc = document.getElementById('new-class-desc').value.trim();
+    const status = document.getElementById('create-class-status');
+    const btn = document.getElementById('btn-create-class-confirm');
+    if (!name) { status.textContent = 'Please enter a class name.'; status.className='create-class-status err'; return; }
+    if (!currentUser) { status.textContent = 'Not signed in.'; status.className='create-class-status err'; return; }
+    btn.disabled = true; status.textContent = '創建中…'; status.className='create-class-status';
+    try {
+      const res = await fetch('/api/classroom/create', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ name, description: desc, teacher_id: currentUser.id })
+      });
+      const { classroom, error } = await res.json();
+      if (error) throw new Error(error);
+      status.textContent = `Created! Code: ${classroom.code}`;
+      status.className = 'create-class-status ok';
+      setTimeout(() => { closeCreateClassModal(); renderTeacherClasses(); }, 1200);
+    } catch(e) {
+      status.textContent = e.message; status.className='create-class-status err';
+    } finally { btn.disabled = false; }
+  }
+
+  /* ── Student: join class modal ── */
+  function openJoinModal() {
+    document.getElementById('join-code-input').value = '';
+    document.getElementById('join-status').textContent = '';
+    document.getElementById('join-status').className = 'join-status';
+    document.getElementById('join-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('join-code-input').focus(), 50);
+  }
+  function closeJoinModal() {
+    document.getElementById('join-overlay').classList.remove('open');
+  }
+
+  async function submitJoinCode() {
+    const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+    const status = document.getElementById('join-status');
+    if (code.length !== 6) { status.textContent = 'Code must be 6 characters.'; status.className='join-status err'; return; }
+    if (!currentUser) { status.textContent = 'Not signed in.'; status.className='join-status err'; return; }
+    status.textContent = '加入中…'; status.className='join-status';
+    try {
+      const res = await fetch('/api/classroom/join', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ code, student_id: currentUser.id })
+      });
+      const { classroom, error } = await res.json();
+      if (error) throw new Error(error);
+      status.textContent = `加入成功！Joined: ${classroom.name}`;
+      status.className = 'join-status ok';
+      setTimeout(() => { closeJoinModal(); renderStudentClass(); }, 1200);
+    } catch(e) {
+      status.textContent = e.message; status.className='join-status err';
+    }
+  }
+
+  /* ── Student: view enrolled classes ── */
+  async function renderStudentClass() {
+    if (!currentUser) return;
+    const body = document.getElementById('student-class-body');
+    body.innerHTML = '<div style="padding:2rem;font-style:italic;color:var(--ink-faint);font-size:12px;">Loading…</div>';
+    try {
+      const res = await fetch(`/api/classroom/enrolled?student_id=${currentUser.id}`);
+      const { enrollments, error } = await res.json();
+      if (error) throw new Error(error);
+      if (!enrollments || !enrollments.length) {
+        body.innerHTML = `
+          <div class="no-class-placeholder">
+            <p>You haven't joined a class yet.</p>
+            <button class="btn-create-class" onclick="openJoinModal()">加入班級 &nbsp;Join a Class</button>
+          </div>`;
+        return;
+      }
+      body.innerHTML = `
+        <div style="margin-bottom:1rem;">
+          <button class="btn-create-class" onclick="openJoinModal()">＋ 加入班級 &nbsp;Join another class</button>
+        </div>
+        <div class="classroom-grid">
+          ${enrollments.map(e => {
+            const c = e.classrooms;
+            const teacher = c.profiles?.display_name || 'Teacher';
+            return `
+            <div class="classroom-card ${activeClassroomId===c.id?'active-class':''}" onclick="selectStudentClassroom('${c.id}','${c.name}')">
+              <div class="classroom-card-name">${c.name}</div>
+              <div class="classroom-card-teacher">Teacher: ${teacher}</div>
+              <div class="classroom-card-meta">Joined ${new Date(e.joined_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+            </div>`;
+          }).join('')}
+        </div>`;
+    } catch(e) {
+      body.innerHTML = `<div style="padding:1rem;color:var(--vermilion);font-size:12px;">${e.message}</div>`;
+    }
+  }
+
+  async function selectStudentClassroom(id, name) {
+    activeClassroomId = id;
+    renderStudentClass();
+    // Load points for this class
+    try {
+      const pres = await fetch(`/api/classroom/points?classroom_id=${id}`);
+      const { points } = await pres.json();
+      const myPts = (points||[]).filter(p => p.student_id === currentUser.id);
+      const total = myPts.reduce((a,p) => a+p.amount, 0);
+      const now = new Date();
+      const weekPts = myPts.filter(p => (now-new Date(p.awarded_at))/(1000*60*60*24)<=7).reduce((a,p)=>a+p.amount,0);
+      if (document.getElementById('stat-total-pts')) {
+        document.getElementById('stat-total-pts').textContent = total;
+        document.getElementById('stat-this-week').textContent = weekPts;
+      }
+    } catch(e) {}
+  }
+
 </script>
 
 <!-- Word Bank: New Set Modal -->
@@ -3527,6 +3891,45 @@ ${text}`;
     </div>
   </div>
 </div>
+
+<!-- Join Class Modal -->
+<div class="join-overlay" id="join-overlay">
+  <div class="join-modal">
+    <div class="join-modal-title">加入班級 · Join a Class</div>
+    <input class="join-code-input" id="join-code-input" maxlength="6"
+      placeholder="A B C 1 2 3"
+      oninput="this.value=this.value.toUpperCase()"
+      onkeydown="if(event.key==='Enter')submitJoinCode()" />
+    <div class="join-status" id="join-status"></div>
+    <div class="join-modal-actions">
+      <button class="btn-modal-cancel" onclick="closeJoinModal()">取消 Cancel</button>
+      <button class="btn-modal-confirm" onclick="submitJoinCode()">加入 Join</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Class Modal -->
+<div class="create-class-overlay" id="create-class-overlay">
+  <div class="create-class-modal">
+    <div class="create-class-modal-title">創建班級 · Create a Class</div>
+    <div class="create-class-fields">
+      <div class="wb-input-group">
+        <span class="wb-input-label">Class Name</span>
+        <input class="wb-input" id="new-class-name" type="text" placeholder="e.g. 一年级中文 · Grade 1 Chinese" />
+      </div>
+      <div class="wb-input-group">
+        <span class="wb-input-label">Description (optional)</span>
+        <input class="wb-input" id="new-class-desc" type="text" placeholder="e.g. Tuesday / Thursday 3pm" />
+      </div>
+      <div class="create-class-status" id="create-class-status"></div>
+    </div>
+    <div class="join-modal-actions">
+      <button class="btn-modal-cancel" onclick="closeCreateClassModal()">取消 Cancel</button>
+      <button class="btn-modal-confirm" id="btn-create-class-confirm" onclick="submitCreateClass()">創建 Create</button>
+    </div>
+  </div>
+</div>
+
 
 </body>
 </html>
