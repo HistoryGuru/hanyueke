@@ -1878,6 +1878,186 @@
       font-size: 13px; font-style: italic; color: var(--ink-faint); margin-bottom: 1.25rem;
     }
 
+
+    /* ── Class Stream ── */
+    .stream-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+    .stream-feed   { display: flex; flex-direction: column; gap: 1px; }
+
+    /* Compose box */
+    .stream-compose {
+      background: var(--surface); border: 1px solid var(--parchment-dk);
+      padding: 1.25rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 10px;
+    }
+    .stream-compose-row { display: flex; gap: 10px; }
+    .stream-compose-input {
+      flex: 1; padding: 9px 12px;
+      border: none; border-bottom: 1px solid var(--border-ink);
+      background: transparent; font-family: "Noto Serif", serif;
+      font-size: 13px; color: var(--ink); outline: none;
+      transition: border-color 0.15s;
+    }
+    .stream-compose-input:focus { border-bottom-color: var(--vermilion); }
+    .stream-compose-input::placeholder { color: var(--parchment-dk); font-style: italic; }
+    .btn-stream-post {
+      padding: 9px 18px; font-family: "Noto Serif SC", serif;
+      font-size: 11px; letter-spacing: 2px;
+      background: var(--vermilion); color: #FDF8F3;
+      border: 1px solid var(--vermilion); cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-stream-post:hover { background: var(--vermilion-dk); }
+    .btn-stream-post:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Stream post card */
+    .stream-post {
+      background: var(--surface); border: 1px solid var(--parchment-dk);
+      margin-bottom: 1px; overflow: hidden;
+    }
+    .stream-post-head {
+      padding: 1rem 1.25rem 0.6rem;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      border-bottom: 1px solid var(--parchment-dk);
+    }
+    .stream-post-type-badge {
+      font-family: "Noto Serif SC", serif; font-size: 9px; letter-spacing: 1.5px;
+      padding: 2px 8px; border: 1px solid; margin-bottom: 4px; display: inline-block;
+    }
+    .badge-announcement { border-color: var(--border-ink); color: var(--ink-faint); }
+    .badge-worksheet    { border-color: var(--border-gold); color: var(--gold); }
+    .badge-test         { border-color: rgba(192,57,43,0.3); color: var(--vermilion); }
+    .badge-flashcards   { border-color: rgba(42,96,48,0.3); color: #2A6030; }
+    .stream-post-title {
+      font-family: "Noto Serif SC", serif; font-size: 14px;
+      color: var(--ink); letter-spacing: 0.5px;
+    }
+    .stream-post-meta {
+      font-size: 11px; font-style: italic; color: var(--ink-faint); margin-top: 3px;
+    }
+    .stream-post-due {
+      font-family: "Noto Serif SC", serif; font-size: 11px;
+      padding: 2px 10px; border: 1px solid; flex-shrink: 0; align-self: flex-start;
+    }
+    .due-upcoming { border-color: var(--border-gold); color: var(--gold); }
+    .due-overdue  { border-color: var(--vermilion); color: var(--vermilion); }
+    .due-none     { display: none; }
+    .stream-post-body { padding: 0.75rem 1.25rem; font-size: 13px; color: var(--ink-mid); line-height: 1.7; }
+    .stream-post-actions {
+      padding: 0.6rem 1.25rem; border-top: 1px solid var(--parchment-dk);
+      display: flex; gap: 8px; background: var(--parchment-lt);
+    }
+    .btn-stream-action {
+      font-family: "Noto Serif SC", serif; font-size: 10px; letter-spacing: 1.5px;
+      padding: 5px 12px; border: 1px solid var(--border-ink);
+      background: transparent; color: var(--ink-mid); cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .btn-stream-action:hover { border-color: var(--vermilion); color: var(--vermilion); background: var(--vermilion-lt); }
+    .btn-stream-del {
+      font-family: "Noto Serif SC", serif; font-size: 10px; letter-spacing: 1px;
+      padding: 5px 10px; border: 1px solid transparent;
+      background: transparent; color: var(--ink-faint); cursor: pointer;
+      margin-left: auto; transition: color 0.12s;
+    }
+    .btn-stream-del:hover { color: var(--vermilion); }
+
+    /* Submissions mini-list */
+    .submission-list { padding: 0 1.25rem 0.75rem; }
+    .submission-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 5px 0; border-bottom: 1px solid var(--parchment-dk);
+      font-size: 12px; color: var(--ink-mid);
+    }
+    .submission-row:last-child { border-bottom: none; }
+    .sub-name { flex: 1; font-family: "Noto Serif SC", serif; font-size: 12px; }
+    .sub-status {
+      font-family: "Noto Serif SC", serif; font-size: 9px; letter-spacing: 1px;
+      padding: 2px 7px; border: 1px solid;
+    }
+    .sub-assigned  { border-color: var(--border-ink); color: var(--ink-faint); }
+    .sub-submitted { border-color: var(--border-gold); color: var(--gold); }
+    .sub-graded    { border-color: rgba(42,96,48,0.3); color: #2A6030; }
+    .sub-grade-input {
+      width: 48px; padding: 2px 6px; font-family: "Noto Serif SC", serif; font-size: 11px;
+      border: 1px solid var(--border-ink); background: transparent; color: var(--ink);
+      text-align: center; outline: none;
+    }
+    .btn-sub-grade {
+      font-family: "Noto Serif SC", serif; font-size: 9px; letter-spacing: 1px;
+      padding: 3px 8px; border: 1px solid var(--border-ink);
+      background: transparent; color: var(--ink-mid); cursor: pointer;
+    }
+    .btn-sub-grade:hover { border-color: var(--vermilion); color: var(--vermilion); }
+
+    /* Stream sidebar */
+    .stream-sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stream-sidebar-card {
+      background: var(--surface); border: 1px solid var(--parchment-dk); padding: 1.25rem;
+    }
+    .stream-sidebar-title {
+      font-family: "Noto Serif SC", serif; font-size: 11px; letter-spacing: 2px;
+      color: var(--ink-faint); text-transform: uppercase;
+      border-bottom: 1px solid var(--parchment-dk); padding-bottom: 8px; margin-bottom: 10px;
+    }
+    .class-code-display {
+      font-family: "Noto Serif SC", serif; font-size: 28px; letter-spacing: 8px;
+      color: var(--vermilion); text-align: center; padding: 12px;
+      background: var(--gold-lt); border: 1px solid var(--border-gold); margin-bottom: 6px;
+    }
+    .class-code-hint { font-size: 11px; font-style: italic; color: var(--ink-faint); text-align: center; }
+
+    /* Assign modal */
+    .assign-overlay {
+      position: fixed; inset: 0; background: rgba(28,24,20,0.55);
+      z-index: 400; display: none; align-items: center; justify-content: center;
+    }
+    .assign-overlay.open { display: flex; }
+    .assign-modal {
+      background: var(--surface); border: 1px solid var(--parchment-dk);
+      width: 460px; max-width: 95vw; padding: 2rem; position: relative;
+    }
+    .assign-modal::before, .assign-modal::after {
+      content: ""; position: absolute; width: 14px; height: 14px;
+      border-color: var(--gold); border-style: solid;
+    }
+    .assign-modal::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+    .assign-modal::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+    .assign-modal-title {
+      font-family: "Noto Serif SC", serif; font-size: 15px; font-weight: 300;
+      color: var(--ink); letter-spacing: 2px; margin-bottom: 1.5rem;
+    }
+    .assign-fields { display: flex; flex-direction: column; gap: 1rem; }
+    .assign-field-label {
+      font-family: "Noto Serif SC", serif; font-size: 9px; letter-spacing: 2.5px;
+      color: var(--ink-faint); text-transform: uppercase; margin-bottom: 5px; display: block;
+    }
+    .assign-select {
+      width: 100%; padding: 9px 12px; font-family: "Noto Serif SC", serif;
+      font-size: 13px; border: 1px solid var(--border-ink); background: var(--surface);
+      color: var(--ink); outline: none; border-radius: 0;
+    }
+    .assign-date-input {
+      width: 100%; padding: 9px 12px; font-family: "Noto Serif", serif;
+      font-size: 13px; border: none; border-bottom: 1px solid var(--border-ink);
+      background: transparent; color: var(--ink); outline: none;
+    }
+    .assign-instructions {
+      width: 100%; padding: 9px 12px; font-family: "Noto Serif", serif;
+      font-size: 13px; border: 1px solid var(--border-ink); background: var(--parchment-lt);
+      color: var(--ink); outline: none; resize: vertical; min-height: 70px;
+    }
+    .assign-status { font-size: 12px; font-style: italic; min-height: 18px; }
+    .assign-status.err { color: var(--vermilion); }
+    .assign-status.ok  { color: #2A6030; }
+    .assign-actions { display: flex; gap: 10px; margin-top: 1.25rem; justify-content: flex-end; }
+
+    /* No class selected state */
+    .stream-no-class {
+      border: 1px dashed var(--border-gold); padding: 3rem 2rem; text-align: center;
+    }
+    .stream-no-class p { font-size: 13px; font-style: italic; color: var(--ink-faint); }
+
+    @media (max-width: 800px) { .stream-layout { grid-template-columns: 1fr; } }
+
     @media (max-width: 700px) {
       .auth-card { padding: 2rem 1.25rem 1.75rem; }
       .sidebar { width: 56px; }
@@ -2052,7 +2232,31 @@
             <p>Assignments and deadlines · 作業</p>
           </div>
         </div>
+        <!-- teacher: class selector -->
+        <div id="hw-class-selector-wrap" style="display:none;margin-bottom:1rem;">
+          <select id="hw-class-picker" onchange="renderHomework()"
+            style="font-family:'Noto Serif SC',serif;font-size:13px;padding:8px 12px;border:1px solid var(--border-ink);border-radius:0;background:var(--surface);color:var(--ink);outline:none;"></select>
+        </div>
         <div class="hw-list" id="hw-list"></div>
+      </div>
+
+      <!-- Stream panel (teacher + enrolled students) -->
+      <div class="section-panel" id="panel-stream">
+        <div class="section-head">
+          <div class="section-head-hanzi">流</div>
+          <div class="section-head-text">
+            <h2>Class Stream</h2>
+            <p>Announcements and assignments · 班級動態</p>
+          </div>
+        </div>
+        <!-- class picker for teacher -->
+        <div id="stream-class-selector" style="margin-bottom:1.25rem;display:none;">
+          <select id="stream-class-picker" onchange="onStreamClassChange()"
+            style="font-family:'Noto Serif SC',serif;font-size:13px;padding:8px 12px;border:1px solid var(--border-ink);border-radius:0;background:var(--surface);color:var(--ink);outline:none;width:100%;max-width:360px;"></select>
+        </div>
+        <div id="stream-body">
+          <div class="stream-no-class"><p>Select a class above to view the stream.</p></div>
+        </div>
       </div>
 
       <!-- ④ GRADES (teacher + student + parent) -->
@@ -2476,12 +2680,14 @@
       { id: 'lessons',     hanzi: '書', label: 'Lesson Library' },
       { id: 'messages',    hanzi: '信', label: 'Messages' },
       { id: 'classes',     hanzi: '班', label: 'My Classes' },
+      { id: 'stream',      hanzi: '流', label: 'Class Stream' },
       { id: 'wordbank',    hanzi: '詞', label: 'Word Bank' },
       { id: 'settings',    hanzi: '設', label: 'Settings' },
       { id: 'pricing',     hanzi: '價', label: 'Plans & Pricing' },
     ],
     student: [
       { id: 'myclass',     hanzi: '班', label: 'My Class' },
+      { id: 'stream',      hanzi: '流', label: 'Class Stream' },
       { id: 'points',      hanzi: '星', label: 'Class Points' },
       { id: 'leaderboard', hanzi: '榜', label: 'Leaderboard' },
       { id: 'homework',    hanzi: '作', label: 'Homework' },
@@ -2582,6 +2788,7 @@
     if (id === 'messages')    renderMessages();
     if (id === 'wordbank')   renderWordBank();
     if (id === 'classes')    renderTeacherClasses();
+    if (id === 'stream')     renderStream();
     if (id === 'myclass')    renderStudentClass();
     if (id === 'settings')   renderSettings();
     /* pricing panel is static — no render needed */
@@ -2626,16 +2833,100 @@
       </tr>`).join('');
   }
 
-  function renderHomework() {
-    document.getElementById('hw-list').innerHTML = HOMEWORK.map(h => `
-      <div class="hw-item">
-        <div class="hw-char">${h.char}</div>
-        <div class="hw-body">
-          <div class="hw-title">${h.title}</div>
-          <div class="hw-meta">${h.due}</div>
-        </div>
-        <span class="hw-badge ${h.status}">${h.status === 'due' ? '待交' : h.status === 'graded' ? '已批' : '逾期'}</span>
-      </div>`).join('');
+  async function renderHomework() {
+    const list = document.getElementById('hw-list');
+    const HW_CHARS = ['一','二','三','四','五','六','七','八','九','十'];
+
+    if (currentRole === 'teacher') {
+      // Teacher: show class picker + assignments for selected class
+      const wrap = document.getElementById('hw-class-selector-wrap');
+      const picker = document.getElementById('hw-class-picker');
+      if (!currentUser) return;
+      wrap.style.display = '';
+
+      // Populate picker from teacher's classes
+      if (!picker.options.length) {
+        try {
+          const res = await fetch(`/api/classroom/mine?teacher_id=${currentUser.id}`);
+          const { classrooms } = await res.json();
+          picker.innerHTML = '<option value="">— Select a class —</option>' +
+            (classrooms||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+          if (classrooms && classrooms.length && activeClassroomId) {
+            picker.value = activeClassroomId;
+          }
+        } catch(e) {}
+      }
+
+      const classId = picker.value;
+      if (!classId) { list.innerHTML = '<div style="padding:1.5rem;font-style:italic;color:var(--ink-faint);font-size:12px;">Select a class to view assignments.</div>'; return; }
+
+      list.innerHTML = '<div style="padding:1rem;font-style:italic;color:var(--ink-faint);font-size:12px;">Loading…</div>';
+      try {
+        const res = await fetch(`/api/stream?classroom_id=${classId}`);
+        const { posts } = await res.json();
+        const assignments = (posts||[]).filter(p => p.type !== 'announcement');
+        if (!assignments.length) {
+          list.innerHTML = '<div style="padding:1.5rem;font-style:italic;color:var(--ink-faint);font-size:12px;">No assignments yet — assign from the Word Bank.</div>';
+          return;
+        }
+        list.innerHTML = assignments.map((p,i) => {
+          const status = hwStatus(p.due_date);
+          return `<div class="hw-item">
+            <div class="hw-char">${HW_CHARS[i]||'·'}</div>
+            <div class="hw-body">
+              <div class="hw-title">${p.title}</div>
+              <div class="hw-meta">${p.due_date ? 'Due ' + formatDate(p.due_date) : 'No due date'}</div>
+            </div>
+            <span class="hw-badge ${status.cls}">${status.label}</span>
+          </div>`;
+        }).join('');
+      } catch(e) {
+        list.innerHTML = `<div style="padding:1rem;color:var(--vermilion);font-size:12px;">${e.message}</div>`;
+      }
+
+    } else {
+      // Student: real assignments from enrolled classes
+      if (!currentUser) return;
+      list.innerHTML = '<div style="padding:1rem;font-style:italic;color:var(--ink-faint);font-size:12px;">Loading…</div>';
+      try {
+        const res = await fetch(`/api/stream/homework?student_id=${currentUser.id}`);
+        const { homework } = await res.json();
+        if (!homework || !homework.length) {
+          list.innerHTML = '<div style="padding:1.5rem;font-style:italic;color:var(--ink-faint);font-size:12px;">No assignments yet.</div>';
+          return;
+        }
+        list.innerHTML = homework.map((h,i) => {
+          const p = h.stream_posts;
+          if (!p) return '';
+          const status = h.status === 'graded' ? {cls:'graded',label:'已批'} :
+                         h.status === 'submitted' ? {cls:'graded',label:'已交'} :
+                         hwStatus(p.due_date);
+          return `<div class="hw-item">
+            <div class="hw-char">${HW_CHARS[i]||'·'}</div>
+            <div class="hw-body">
+              <div class="hw-title">${p.title}</div>
+              <div class="hw-meta">${p.due_date ? 'Due ' + formatDate(p.due_date) : 'No due date'} · ${p.classrooms?.name||''}</div>
+              ${h.grade ? `<div class="hw-meta" style="color:#2A6030;">Grade: ${h.grade}${h.score?' · '+h.score:''}</div>` : ''}
+            </div>
+            <span class="hw-badge ${status.cls}">${status.label}</span>
+          </div>`;
+        }).join('');
+      } catch(e) {
+        list.innerHTML = `<div style="padding:1rem;color:var(--vermilion);font-size:12px;">${e.message}</div>`;
+      }
+    }
+  }
+
+  function hwStatus(dueDate) {
+    if (!dueDate) return { cls: 'due', label: '待交' };
+    const due = new Date(dueDate); const now = new Date();
+    now.setHours(0,0,0,0);
+    if (due < now) return { cls: 'overdue', label: '逾期' };
+    return { cls: 'due', label: '待交' };
+  }
+
+  function formatDate(d) {
+    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   function renderGrades() {
@@ -3184,10 +3475,17 @@ Respond ONLY with valid JSON, no markdown fences:
     });
     h += `</div>`;
     window._lastDocHTML = h;
+    lastGenOutput = {
+      type: isTest ? 'test' : 'worksheet',
+      title: (doc.title || set.name),
+      content_json: doc,
+      word_set_name: set.name
+    };
 
     document.getElementById('out-title').textContent    = isTest?'試卷 Test':'工作紙 Worksheet';
     document.getElementById('out-sub').textContent      = set.name;
     document.getElementById('btn-out-print').style.display = '';
+    document.getElementById('btn-out-assign').style.display = currentRole==='teacher' ? '' : 'none';
     document.getElementById('out-body').innerHTML       = h;
     document.getElementById('out-overlay').classList.add('open');
   }
@@ -3198,9 +3496,16 @@ Respond ONLY with valid JSON, no markdown fences:
   function showFlashcards() {
     const set = wordSets[activeSetIdx];
     fcCards = [...set.words]; fcIdx=0; fcFlipped=false;
+    lastGenOutput = {
+      type: 'flashcards',
+      title: set.name + ' · Flashcards',
+      content_json: { words: set.words },
+      word_set_name: set.name
+    };
     document.getElementById('out-title').textContent    = '學習卡 Flashcards';
     document.getElementById('out-sub').textContent      = set.name+' · '+fcCards.length+' cards';
     document.getElementById('btn-out-print').style.display = 'none';
+    document.getElementById('btn-out-assign').style.display = currentRole==='teacher' ? '' : 'none';
     renderFCView();
     document.getElementById('out-overlay').classList.add('open');
   }
@@ -3796,6 +4101,235 @@ ${text}`;
     } catch(e) {}
   }
 
+
+  /* ─── Class Stream ─── */
+  let streamClassId   = null;
+  let lastGenOutput   = null; // stores { type, title, content_json, word_set_name }
+
+  async function renderStream() {
+    const body = document.getElementById('stream-body');
+
+    if (currentRole === 'teacher') {
+      // Show class picker
+      const sel = document.getElementById('stream-class-selector');
+      const picker = document.getElementById('stream-class-picker');
+      sel.style.display = '';
+      if (!picker.options.length && currentUser) {
+        const res = await fetch(`/api/classroom/mine?teacher_id=${currentUser.id}`);
+        const { classrooms } = await res.json();
+        picker.innerHTML = '<option value="">— Select a class —</option>' +
+          (classrooms||[]).map(c => `<option value="${c.id}" data-code="${c.code}">${c.name}</option>`).join('');
+        if (activeClassroomId) { picker.value = activeClassroomId; onStreamClassChange(); }
+      } else if (streamClassId) {
+        await loadStream(streamClassId);
+      } else {
+        body.innerHTML = '<div class="stream-no-class"><p>Select a class above to view the stream.</p></div>';
+      }
+    } else {
+      // Student: use active classroom
+      if (activeClassroomId) {
+        await loadStream(activeClassroomId);
+      } else {
+        body.innerHTML = '<div class="stream-no-class"><p>Join a class first to see the stream.</p></div>';
+      }
+    }
+  }
+
+  async function onStreamClassChange() {
+    const picker = document.getElementById('stream-class-picker');
+    streamClassId = picker.value;
+    if (!streamClassId) {
+      document.getElementById('stream-body').innerHTML = '<div class="stream-no-class"><p>Select a class above.</p></div>';
+      return;
+    }
+    // Also update activeClassroomId
+    activeClassroomId = streamClassId;
+    await loadStream(streamClassId);
+  }
+
+  async function loadStream(classId) {
+    const body = document.getElementById('stream-body');
+    body.innerHTML = '<div style="padding:2rem;font-style:italic;color:var(--ink-faint);font-size:12px;">Loading…</div>';
+    try {
+      // Get class info for sidebar code display
+      const [streamRes, classRes] = await Promise.all([
+        fetch(`/api/stream?classroom_id=${classId}`),
+        fetch(`/api/classroom/mine?teacher_id=${currentUser?.id||'x'}`)
+      ]);
+      const { posts } = await streamRes.json();
+      const { classrooms } = await classRes.json();
+      const thisClass = (classrooms||[]).find(c => c.id === classId);
+      const code = thisClass?.code || '';
+      const className = thisClass?.name || '';
+
+      const isTeacher = currentRole === 'teacher';
+
+      body.innerHTML = `
+        <div class="stream-layout">
+          <div>
+            ${isTeacher ? `
+            <div class="stream-compose">
+              <div class="stream-compose-row">
+                <input class="stream-compose-input" id="compose-text" placeholder="Post an announcement to your class…" />
+                <button class="btn-stream-post" onclick="postAnnouncement()">發布 Post</button>
+              </div>
+            </div>` : ''}
+            <div class="stream-feed" id="stream-feed">
+              ${renderPostCards(posts, isTeacher)}
+            </div>
+          </div>
+          <div class="stream-sidebar">
+            ${isTeacher && code ? `
+            <div class="stream-sidebar-card">
+              <div class="stream-sidebar-title">Class Code · 班級碼</div>
+              <div class="class-code-display">${code}</div>
+              <div class="class-code-hint">Share with students to join</div>
+            </div>` : ''}
+            <div class="stream-sidebar-card">
+              <div class="stream-sidebar-title">Class · 班級</div>
+              <div style="font-family:'Noto Serif SC',serif;font-size:13px;color:var(--ink);">${className||'—'}</div>
+            </div>
+          </div>
+        </div>`;
+    } catch(e) {
+      body.innerHTML = `<div style="padding:1rem;color:var(--vermilion);font-size:12px;">${e.message}</div>`;
+    }
+  }
+
+  function renderPostCards(posts, isTeacher) {
+    if (!posts || !posts.length) return '<div style="padding:2rem;font-style:italic;color:var(--ink-faint);font-size:12px;text-align:center;">No posts yet.</div>';
+    const TYPE_LABEL = { announcement:'公告', worksheet:'工作紙', test:'測驗', flashcards:'學習卡' };
+    const TYPE_CLASS = { announcement:'badge-announcement', worksheet:'badge-worksheet', test:'badge-test', flashcards:'badge-flashcards' };
+    return posts.map(p => {
+      const dueStatus = p.due_date ? (new Date(p.due_date) < new Date() ? 'due-overdue' : 'due-upcoming') : 'due-none';
+      const dueLabel  = p.due_date ? (new Date(p.due_date) < new Date() ? '逾期 ' : '截止 ') + formatDate(p.due_date) : '';
+      const subs = p.submissions || [];
+      const subSummary = subs.length ? `${subs.filter(s=>s.status==='graded').length}批/${subs.filter(s=>s.status==='submitted').length}交/${subs.length}人` : '';
+      return `<div class="stream-post" id="post-${p.id}">
+        <div class="stream-post-head">
+          <div>
+            <span class="stream-post-type-badge ${TYPE_CLASS[p.type]||''}">${TYPE_LABEL[p.type]||p.type}</span>
+            <div class="stream-post-title">${p.title}</div>
+            <div class="stream-post-meta">${formatDate(p.created_at)}${p.word_set_name?' · '+p.word_set_name:''}</div>
+          </div>
+          <span class="stream-post-due ${dueStatus}">${dueLabel}</span>
+        </div>
+        ${p.body ? `<div class="stream-post-body">${p.body}</div>` : ''}
+        ${isTeacher && subs.length ? `
+        <div class="submission-list">
+          <div style="font-family:'Noto Serif SC',serif;font-size:9px;letter-spacing:2px;color:var(--ink-faint);padding:4px 0 8px;">提交情況 · ${subSummary}</div>
+          ${subs.map(s => `
+          <div class="submission-row">
+            <span class="sub-name">${s.profiles?.display_name||'Student'}</span>
+            <span class="sub-status sub-${s.status}">${s.status==='graded'?'已批':s.status==='submitted'?'已交':'待交'}</span>
+            ${s.status!=='graded' ? `
+              <input class="sub-grade-input" id="grade-${p.id}-${s.student_id}" placeholder="A" />
+              <button class="btn-sub-grade" onclick="gradeSubmission('${p.id}','${s.student_id}')">批</button>
+            ` : `<span style="font-size:11px;color:#2A6030;">${s.grade||''}</span>`}
+          </div>`).join('')}
+        </div>` : ''}
+        <div class="stream-post-actions">
+          ${p.content_json && !isTeacher ? `<button class="btn-stream-action" onclick="viewAssignment('${p.id}')">查看 View</button>` : ''}
+          ${isTeacher ? `<button class="btn-stream-del" onclick="deletePost('${p.id}')">刪除</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function postAnnouncement() {
+    const input = document.getElementById('compose-text');
+    const text = input.value.trim();
+    if (!text || !activeClassroomId || !currentUser) return;
+    try {
+      const res = await fetch('/api/stream/post', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          classroom_id: activeClassroomId, teacher_id: currentUser.id,
+          type: 'announcement', title: text
+        })
+      });
+      const { post, error } = await res.json();
+      if (error) throw new Error(error);
+      input.value = '';
+      await loadStream(activeClassroomId);
+    } catch(e) { alert(e.message); }
+  }
+
+  async function deletePost(postId) {
+    if (!confirm('Delete this post?')) return;
+    await fetch(`/api/stream/post/${postId}`, { method: 'DELETE' });
+    await loadStream(activeClassroomId);
+  }
+
+  async function gradeSubmission(postId, studentId) {
+    const grade = document.getElementById(`grade-${postId}-${studentId}`)?.value.trim();
+    if (!grade) return;
+    await fetch('/api/stream/grade', {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ post_id: postId, student_id: studentId, grade })
+    });
+    await loadStream(activeClassroomId);
+  }
+
+  /* ─── Assign to Class ─── */
+  async function openAssignModal() {
+    if (!currentUser) return;
+    const sel = document.getElementById('assign-class-select');
+    sel.innerHTML = '<option value="">Loading…</option>';
+    document.getElementById('assign-due-date').value = '';
+    document.getElementById('assign-instructions').value = '';
+    document.getElementById('assign-status').textContent = '';
+    document.getElementById('assign-overlay').classList.add('open');
+
+    // Load teacher's classes
+    try {
+      const res = await fetch(`/api/classroom/mine?teacher_id=${currentUser.id}`);
+      const { classrooms } = await res.json();
+      sel.innerHTML = '<option value="">— Select a class —</option>' +
+        (classrooms||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      if (activeClassroomId) sel.value = activeClassroomId;
+    } catch(e) { sel.innerHTML = '<option value="">Error loading classes</option>'; }
+  }
+
+  function closeAssignModal() {
+    document.getElementById('assign-overlay').classList.remove('open');
+  }
+
+  async function submitAssign() {
+    const classId = document.getElementById('assign-class-select').value;
+    const dueDate = document.getElementById('assign-due-date').value;
+    const body    = document.getElementById('assign-instructions').value.trim();
+    const status  = document.getElementById('assign-status');
+    const btn     = document.getElementById('btn-assign-confirm');
+
+    if (!classId)     { status.textContent = 'Please select a class.'; status.className='assign-status err'; return; }
+    if (!lastGenOutput) { status.textContent = 'No content to assign.'; status.className='assign-status err'; return; }
+    if (!currentUser)   { status.textContent = 'Not signed in.'; status.className='assign-status err'; return; }
+
+    btn.disabled = true; status.textContent = '派發中…'; status.className='assign-status';
+    try {
+      const res = await fetch('/api/stream/post', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          classroom_id:  classId,
+          teacher_id:    currentUser.id,
+          type:          lastGenOutput.type,
+          title:         lastGenOutput.title,
+          body:          body,
+          due_date:      dueDate || null,
+          content_json:  lastGenOutput.content_json,
+          word_set_name: lastGenOutput.word_set_name
+        })
+      });
+      const { post, error } = await res.json();
+      if (error) throw new Error(error);
+      status.textContent = '派發成功！ Assigned successfully.'; status.className='assign-status ok';
+      setTimeout(() => closeAssignModal(), 1400);
+    } catch(e) {
+      status.textContent = e.message; status.className='assign-status err';
+    } finally { btn.disabled = false; }
+  }
+
 </script>
 
 <!-- Word Bank: New Set Modal -->
@@ -3846,6 +4380,7 @@ ${text}`;
         </div>
       </div>
       <div class="out-actions">
+        <button class="btn-out-action" id="btn-out-assign" onclick="openAssignModal()" style="display:none;">派發 Assign</button>
         <button class="btn-out-action" id="btn-out-print" onclick="printOutput()">列印 Print</button>
         <button class="btn-out-close" onclick="closeOutput()">×</button>
       </div>
@@ -3926,6 +4461,33 @@ ${text}`;
     <div class="join-modal-actions">
       <button class="btn-modal-cancel" onclick="closeCreateClassModal()">取消 Cancel</button>
       <button class="btn-modal-confirm" id="btn-create-class-confirm" onclick="submitCreateClass()">創建 Create</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── Assign to Class Modal ── -->
+<div class="assign-overlay" id="assign-overlay">
+  <div class="assign-modal">
+    <div class="assign-modal-title">派發作業 · Assign to Class</div>
+    <div class="assign-fields">
+      <div>
+        <span class="assign-field-label">Class</span>
+        <select class="assign-select" id="assign-class-select"></select>
+      </div>
+      <div>
+        <span class="assign-field-label">Due Date (optional)</span>
+        <input class="assign-date-input" id="assign-due-date" type="date" />
+      </div>
+      <div>
+        <span class="assign-field-label">Instructions (optional)</span>
+        <textarea class="assign-instructions" id="assign-instructions" placeholder="Any notes for students…"></textarea>
+      </div>
+      <div class="assign-status" id="assign-status"></div>
+    </div>
+    <div class="assign-actions">
+      <button class="btn-modal-cancel" onclick="closeAssignModal()">取消 Cancel</button>
+      <button class="btn-modal-confirm" id="btn-assign-confirm" onclick="submitAssign()">派發 Assign</button>
     </div>
   </div>
 </div>
