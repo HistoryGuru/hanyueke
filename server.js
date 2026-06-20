@@ -17,10 +17,10 @@ app.use(helmet({
     directives: {
       defaultSrc:     ["'self'"],
       scriptSrc:      ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "cdnjs.cloudflare.com", "fonts.googleapis.com"],
-      scriptSrcAttr:  ["'unsafe-inline'"],   // allows onclick= handlers
+      scriptSrcAttr:  ["'unsafe-inline'"],
       styleSrc:       ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
       fontSrc:        ["'self'", "fonts.gstatic.com"],
-      connectSrc:     ["'self'", "https://*.supabase.co", "https://api.groq.com"],
+      connectSrc:     ["'self'", "https://*.supabase.co", "https://api.groq.com", "https://cdn.jsdelivr.net"],
       imgSrc:         ["'self'", "data:"],
     }
   }
