@@ -1,0 +1,3533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>汉语课 · Hànyǔ Kè</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600&family=Noto+Serif:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --vermilion:     #C0392B;
+      --vermilion-dk:  #96281B;
+      --vermilion-lt:  #F9ECEA;
+      --ink:           #1C1814;
+      --ink-mid:       #4A4035;
+      --ink-faint:     #8A7E72;
+      --parchment:     #F5EFE4;
+      --parchment-dk:  #E8DFD0;
+      --parchment-lt:  #FBF8F3;
+      --gold:          #B5882A;
+      --gold-lt:       #F5ECD6;
+      --surface:       #FDFAF5;
+      --border-ink:    rgba(28,24,20,0.12);
+      --border-gold:   rgba(181,136,42,0.35);
+      --radius:        4px;
+      --shadow-parch:  0 2px 20px rgba(28,24,20,0.08), 0 0 0 1px rgba(28,24,20,0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Noto Serif", Georgia, serif;
+      background: var(--parchment);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--ink);
+    }
+
+    /* Background texture — subtle grid of faint strokes */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(28,24,20,0.03) 60px),
+        repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(28,24,20,0.03) 60px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page { display: none; min-height: 100vh; position: relative; z-index: 1; }
+    .page.active { display: flex; }
+
+    /* ══════════════════════════════
+       AUTH PAGE
+    ══════════════════════════════ */
+    #page-auth {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.25rem;
+    }
+
+    /* Decorative top seal strip */
+    .auth-seal-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2.25rem;
+    }
+    .seal-line { flex: 1; height: 1px; background: var(--border-gold); }
+    .seal-glyph {
+      font-family: "Noto Serif SC", serif;
+      font-size: 22px;
+      color: var(--vermilion);
+      letter-spacing: 6px;
+      font-weight: 300;
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--parchment-dk);
+      box-shadow: var(--shadow-parch);
+      padding: 2.75rem 2.25rem 2.25rem;
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+    }
+
+    /* Corner ornaments */
+    .auth-card::before, .auth-card::after {
+      content: "";
+      position: absolute;
+      width: 18px; height: 18px;
+      border-color: var(--gold);
+      border-style: solid;
+    }
+    .auth-card::before {
+      top: 10px; left: 10px;
+      border-width: 1px 0 0 1px;
+    }
+    .auth-card::after {
+      bottom: 10px; right: 10px;
+      border-width: 0 1px 1px 0;
+    }
+
+    /* Logo */
+    .logo-block { text-align: center; margin-bottom: 2rem; }
+    .logo-hanzi {
+      font-family: "Noto Serif SC", serif;
+      font-size: 48px;
+      font-weight: 300;
+      color: var(--vermilion);
+      line-height: 1;
+      letter-spacing: 8px;
+      display: block;
+      margin-bottom: 0.6rem;
+    }
+    .logo-rule {
+      width: 48px;
+      height: 1px;
+      background: var(--border-gold);
+      margin: 0 auto 0.6rem;
+    }
+    .logo-pinyin {
+      font-family: "Noto Serif", serif;
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-faint);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+    }
+
+    /* Tab switcher — understated ink underlines */
+    .tab-row {
+      display: flex;
+      border-bottom: 1px solid var(--border-ink);
+      margin-bottom: 1.75rem;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      font-family: "Noto Serif SC", serif;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--ink-faint);
+      cursor: pointer;
+      position: relative;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .tab-btn::after {
+      content: "";
+      position: absolute;
+      bottom: -1px; left: 20%; right: 20%;
+      height: 2px;
+      background: var(--vermilion);
+      transform: scaleX(0);
+      transition: transform 0.2s;
+    }
+    .tab-btn.active { color: var(--ink); }
+    .tab-btn.active::after { transform: scaleX(1); }
+
+    /* Forms */
+    .auth-form { display: none; flex-direction: column; gap: 16px; }
+    .auth-form.active { display: flex; }
+
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      color: var(--ink-faint);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      border-bottom: 1px solid var(--border-ink);
+      border-radius: 0;
+      font-family: "Noto Serif", serif;
+      font-size: 14px;
+      color: var(--ink);
+      background: transparent;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--vermilion); }
+    input::placeholder { color: var(--parchment-dk); }
+
+    /* Role cards */
+    .role-row { display: flex; gap: 8px; }
+    .role-card {
+      flex: 1;
+      border: 1px solid var(--border-ink);
+      padding: 12px 6px 10px;
+      text-align: center;
+      cursor: pointer;
+      background: transparent;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .role-card:hover { border-color: var(--gold); }
+    .role-card.selected {
+      border-color: var(--vermilion);
+      background: var(--vermilion-lt);
+    }
+    .role-card.selected::after {
+      content: "✓";
+      position: absolute;
+      top: 4px; right: 6px;
+      font-size: 9px;
+      color: var(--vermilion);
+    }
+    .role-card input[type="radio"] { display: none; }
+    .role-hanzi {
+      font-family: "Noto Serif SC", serif;
+      font-size: 20px;
+      color: var(--ink-mid);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .role-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      color: var(--ink-faint);
+      letter-spacing: 1px;
+    }
+
+    /* Primary button — vermilion seal style */
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background: var(--vermilion);
+      color: #FDF8F3;
+      border: none;
+      border-radius: 0;
+      font-family: "Noto Serif SC", serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 3px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.2s, opacity 0.2s;
+      position: relative;
+    }
+    .btn-primary:hover { background: var(--vermilion-dk); }
+    .btn-primary:active { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Skip button */
+    .skip-wrap {
+      text-align: center;
+      margin-top: 4px;
+    }
+    .btn-skip {
+      background: none;
+      border: none;
+      font-family: "Noto Serif", serif;
+      font-style: italic;
+      font-size: 11px;
+      color: var(--ink-faint);
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--border-ink);
+      transition: color 0.15s;
+    }
+    .btn-skip:hover { color: var(--ink-mid); }
+
+    /* Alert */
+    .alert { padding: 10px 14px; font-size: 12px; display: none; font-style: italic; }
+    .alert.error {
+      background: var(--vermilion-lt);
+      color: var(--vermilion-dk);
+      border-left: 2px solid var(--vermilion);
+      display: block;
+    }
+    .alert.success {
+      background: #EEF5EE;
+      color: #2A6030;
+      border-left: 2px solid #4A9060;
+      display: block;
+    }
+
+    /* Bottom mark */
+    .auth-foot {
+      margin-top: 1.75rem;
+      text-align: center;
+    }
+    .auth-foot-seal {
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      color: var(--parchment-dk);
+      letter-spacing: 2px;
+    }
+
+    /* ══════════════════════════════
+       DASHBOARD
+    ══════════════════════════════ */
+    #page-dashboard { flex-direction: column; min-height: 100vh; }
+
+    /* Topbar */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--parchment-dk);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .topbar::after {
+      content: "";
+      position: absolute;
+      bottom: -2px; left: 0; right: 0;
+      height: 1px;
+      background: var(--border-gold);
+    }
+    .topbar-brand {
+      font-family: "Noto Serif SC", serif;
+      font-size: 17px;
+      font-weight: 300;
+      color: var(--vermilion);
+      letter-spacing: 6px;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .user-chip {
+      font-family: "Noto Serif", serif;
+      font-style: italic;
+      font-size: 12px;
+      color: var(--ink-faint);
+    }
+    .role-badge {
+      font-family: "Noto Serif SC", serif;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      padding: 2px 10px;
+      border: 1px solid var(--border-gold);
+      color: var(--gold);
+    }
+    .btn-signout {
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      padding: 5px 14px;
+      border: 1px solid var(--border-ink);
+      background: transparent;
+      color: var(--ink-mid);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-signout:hover { background: var(--parchment); }
+
+    /* Shell: sidebar + content */
+    .dash-shell {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Sidebar nav */
+    .sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--parchment-dk);
+      padding: 2rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .sidebar-section-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 9px;
+      color: var(--parchment-dk);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      padding: 1rem 1.25rem 0.4rem;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 1.25rem;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      position: relative;
+      transition: background 0.15s;
+      border-left: 2px solid transparent;
+    }
+    .nav-item:hover { background: var(--parchment); }
+    .nav-item.active {
+      background: var(--vermilion-lt);
+      border-left-color: var(--vermilion);
+    }
+    .nav-hanzi {
+      font-family: "Noto Serif SC", serif;
+      font-size: 16px;
+      color: var(--ink-mid);
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .nav-item.active .nav-hanzi { color: var(--vermilion); }
+    .nav-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 12px;
+      color: var(--ink-mid);
+      letter-spacing: 0.5px;
+    }
+    .nav-item.active .nav-label { color: var(--vermilion); }
+
+    /* Main content area */
+    .dash-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2.5rem 2.5rem;
+    }
+
+    /* Section panel */
+    .section-panel { display: none; }
+    .section-panel.active { display: block; }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--parchment-dk);
+    }
+    .section-head-hanzi {
+      font-family: "Noto Serif SC", serif;
+      font-size: 32px;
+      font-weight: 300;
+      color: var(--parchment-dk);
+      line-height: 1;
+    }
+    .section-head-text h2 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 17px;
+      font-weight: 300;
+      color: var(--ink);
+      letter-spacing: 2px;
+      margin-bottom: 3px;
+    }
+    .section-head-text p {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-faint);
+      letter-spacing: 0.5px;
+    }
+
+    /* Coming soon placeholder */
+    .coming-placeholder {
+      border: 1px dashed var(--border-gold);
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .coming-placeholder .cp-hanzi {
+      font-family: "Noto Serif SC", serif;
+      font-size: 40px;
+      color: var(--parchment-dk);
+      margin-bottom: 1rem;
+    }
+    .coming-placeholder .cp-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--gold);
+    }
+
+    /* ── Class Points ── */
+    .points-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 1px;
+      background: var(--parchment-dk);
+      border: 1px solid var(--parchment-dk);
+      margin-bottom: 2rem;
+    }
+    .student-tile {
+      background: var(--surface);
+      padding: 1.25rem 1rem;
+      text-align: center;
+    }
+    .student-avatar {
+      font-family: "Noto Serif SC", serif;
+      font-size: 22px;
+      width: 44px; height: 44px;
+      border: 1px solid var(--border-gold);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.6rem;
+      color: var(--ink-mid);
+    }
+    .student-name {
+      font-family: "Noto Serif SC", serif;
+      font-size: 12px;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .student-pts {
+      font-family: "Noto Serif SC", serif;
+      font-size: 20px;
+      color: var(--vermilion);
+    }
+    .student-pts-label {
+      font-size: 10px;
+      color: var(--ink-faint);
+      letter-spacing: 1px;
+    }
+    .btn-award {
+      margin-top: 8px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border: 1px solid var(--border-ink);
+      background: transparent;
+      color: var(--ink-mid);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-award:hover { border-color: var(--vermilion); color: var(--vermilion); background: var(--vermilion-lt); }
+
+    /* ── Leaderboard ── */
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--parchment-dk);
+    }
+    .leaderboard-table th {
+      font-family: "Noto Serif SC", serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--ink-faint);
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--parchment-dk);
+      background: var(--parchment-lt);
+      font-weight: 400;
+    }
+    .leaderboard-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--parchment-dk);
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .leaderboard-table tr:last-child td { border-bottom: none; }
+    .leaderboard-table tr:nth-child(odd) td { background: var(--surface); }
+    .leaderboard-table tr:nth-child(even) td { background: var(--parchment-lt); }
+    .rank-num {
+      font-family: "Noto Serif SC", serif;
+      font-size: 15px;
+      color: var(--ink-faint);
+      width: 36px;
+    }
+    .rank-num.gold-rank { color: var(--gold); }
+    .rank-num.silver-rank { color: #8A8A9A; }
+    .rank-num.bronze-rank { color: #A0704A; }
+    .pts-cell {
+      font-family: "Noto Serif SC", serif;
+      font-size: 15px;
+      color: var(--vermilion);
+      text-align: right;
+    }
+
+    /* ── Homework ── */
+    .hw-list { display: flex; flex-direction: column; gap: 1px; background: var(--parchment-dk); border: 1px solid var(--parchment-dk); }
+    .hw-item {
+      background: var(--surface);
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .hw-char {
+      font-family: "Noto Serif SC", serif;
+      font-size: 22px;
+      color: var(--parchment-dk);
+      flex-shrink: 0;
+      width: 32px;
+      text-align: center;
+    }
+    .hw-body { flex: 1; }
+    .hw-title {
+      font-family: "Noto Serif SC", serif;
+      font-size: 14px;
+      color: var(--ink);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .hw-meta {
+      font-size: 11px;
+      color: var(--ink-faint);
+      font-style: italic;
+    }
+    .hw-badge {
+      font-family: "Noto Serif SC", serif;
+      font-size: 9px;
+      letter-spacing: 1px;
+      padding: 2px 8px;
+      border: 1px solid;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .hw-badge.due { border-color: var(--border-gold); color: var(--gold); }
+    .hw-badge.graded { border-color: rgba(28,24,20,0.15); color: var(--ink-faint); }
+    .hw-badge.overdue { border-color: var(--vermilion); color: var(--vermilion); }
+
+    /* ── Grades ── */
+    .grades-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--parchment-dk);
+    }
+    .grades-table th {
+      font-family: "Noto Serif SC", serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--ink-faint);
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--parchment-dk);
+      background: var(--parchment-lt);
+      font-weight: 400;
+    }
+    .grades-table td {
+      padding: 11px 14px;
+      font-size: 13px;
+      color: var(--ink);
+      border-bottom: 1px solid var(--parchment-dk);
+    }
+    .grades-table tr:last-child td { border-bottom: none; }
+    .grades-table tr:nth-child(odd) td { background: var(--surface); }
+    .grades-table tr:nth-child(even) td { background: var(--parchment-lt); }
+    .grade-pill {
+      display: inline-block;
+      font-family: "Noto Serif SC", serif;
+      font-size: 12px;
+      padding: 2px 10px;
+      border: 1px solid var(--parchment-dk);
+    }
+    .grade-A { border-color: rgba(42,96,48,0.3); color: #2A6030; background: #EEF5EE; }
+    .grade-B { border-color: var(--border-gold); color: #7A5200; background: var(--gold-lt); }
+    .grade-C { border-color: rgba(28,24,20,0.15); color: var(--ink-mid); }
+    .grade-D, .grade-F { border-color: rgba(192,57,43,0.3); color: var(--vermilion); background: var(--vermilion-lt); }
+    .grade-avg {
+      font-family: "Noto Serif SC", serif;
+      font-size: 24px;
+      color: var(--vermilion);
+      margin-right: 6px;
+    }
+
+    /* ── Messages (parent) ── */
+    .msg-list { display: flex; flex-direction: column; gap: 1px; background: var(--parchment-dk); border: 1px solid var(--parchment-dk); }
+    .msg-item {
+      background: var(--surface);
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .msg-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--vermilion);
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .msg-dot.read { background: var(--parchment-dk); }
+    .msg-body { flex: 1; }
+    .msg-from {
+      font-family: "Noto Serif SC", serif;
+      font-size: 12px;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+    .msg-preview {
+      font-size: 12px;
+      color: var(--ink-faint);
+      font-style: italic;
+      line-height: 1.6;
+    }
+    .msg-date { font-size: 10px; color: var(--ink-faint); letter-spacing: 0.5px; margin-top: 1rem; }
+
+    /* Stat row */
+    .stat-row {
+      display: flex;
+      gap: 1px;
+      background: var(--parchment-dk);
+      border: 1px solid var(--parchment-dk);
+      margin-bottom: 2rem;
+    }
+    .stat-box {
+      flex: 1;
+      background: var(--surface);
+      padding: 1.25rem 1rem;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: "Noto Serif SC", serif;
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--vermilion);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 10px;
+      color: var(--ink-faint);
+      letter-spacing: 1.5px;
+    }
+
+    /* Lesson library */
+    .lesson-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1px;
+      background: var(--parchment-dk);
+      border: 1px solid var(--parchment-dk);
+    }
+    .lesson-card {
+      background: var(--surface);
+      padding: 1.25rem;
+    }
+    .lesson-unit {
+      font-family: "Noto Serif SC", serif;
+      font-size: 10px;
+      color: var(--ink-faint);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+    .lesson-title {
+      font-family: "Noto Serif SC", serif;
+      font-size: 14px;
+      color: var(--ink);
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .lesson-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+    .lesson-chip {
+      font-size: 10px;
+      font-style: italic;
+      color: var(--ink-faint);
+      border: 1px solid var(--parchment-dk);
+      padding: 2px 7px;
+    }
+
+
+    /* ── Pricing ── */
+    .pricing-preamble {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .pricing-preamble-rule {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .pricing-preamble-rule::before,
+    .pricing-preamble-rule::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-gold);
+    }
+    .pricing-preamble-glyph {
+      font-family: "Noto Serif SC", serif;
+      font-size: 13px;
+      color: var(--gold);
+      letter-spacing: 4px;
+    }
+    .pricing-preamble p {
+      font-family: "Noto Serif", serif;
+      font-style: italic;
+      font-size: 12px;
+      color: var(--ink-faint);
+      letter-spacing: 1px;
+    }
+    .pricing-tiers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      align-items: stretch;
+    }
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--parchment-dk);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding: 0;
+      overflow: hidden;
+    }
+    /* corner ornaments on every card */
+    .pricing-card::before,
+    .pricing-card::after {
+      content: "";
+      position: absolute;
+      width: 14px; height: 14px;
+      border-color: var(--gold);
+      border-style: solid;
+      z-index: 1;
+    }
+    .pricing-card::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+    .pricing-card::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+    /* featured override */
+    .pricing-card.featured {
+      border-color: rgba(181,136,42,0.5);
+    }
+    .pricing-card.featured::before,
+    .pricing-card.featured::after {
+      border-color: var(--gold);
+    }
+
+    /* top seal strip — vertical character */
+    .card-seal-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 1.5rem 0;
+    }
+    .card-seal-char {
+      font-family: "Noto Serif SC", serif;
+      font-size: 36px;
+      font-weight: 300;
+      color: var(--vermilion);
+      line-height: 1;
+      letter-spacing: 2px;
+    }
+    .card-seal-badge {
+      font-family: "Noto Serif SC", serif;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      color: var(--gold);
+      border: 1px solid var(--border-gold);
+      padding: 2px 8px;
+    }
+
+    /* header body */
+    .card-head {
+      padding: 0.6rem 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--parchment-dk);
+    }
+    .pricing-card.featured .card-head { border-bottom-color: rgba(181,136,42,0.25); }
+    .card-tier-name {
+      font-family: "Noto Serif SC", serif;
+      font-size: 18px;
+      font-weight: 300;
+      color: var(--ink);
+      letter-spacing: 3px;
+      margin-bottom: 2px;
+    }
+    .card-tier-pinyin {
+      font-family: "Noto Serif", serif;
+      font-style: italic;
+      font-size: 11px;
+      color: var(--ink-faint);
+      letter-spacing: 1px;
+      margin-bottom: 1.25rem;
+    }
+    .card-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .card-currency {
+      font-family: "Noto Serif", serif;
+      font-size: 16px;
+      color: var(--ink-faint);
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+    .card-amount {
+      font-family: "Noto Serif SC", serif;
+      font-size: 42px;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .card-price-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      margin-left: 4px;
+    }
+    .card-period {
+      font-size: 10px;
+      font-style: italic;
+      color: var(--ink-faint);
+      letter-spacing: 0.5px;
+    }
+
+    /* features */
+    .card-features {
+      padding: 1.5rem;
+      flex: 1;
+    }
+    .feature-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--parchment-dk);
+      font-size: 12px;
+      color: var(--ink-mid);
+      line-height: 1.5;
+    }
+    .feature-row:last-child { border-bottom: none; }
+    .feature-mark {
+      font-family: "Noto Serif SC", serif;
+      font-size: 10px;
+      color: var(--gold);
+      flex-shrink: 0;
+      width: 12px;
+      text-align: center;
+    }
+    .feature-row.off { opacity: 0.3; }
+    .feature-row.off .feature-mark { color: var(--ink-faint); }
+
+    /* footer CTA */
+    .card-footer {
+      padding: 0 1.5rem 1.5rem;
+    }
+    .btn-price {
+      width: 100%;
+      padding: 12px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      cursor: pointer;
+      border: 1px solid var(--border-ink);
+      background: transparent;
+      color: var(--ink-mid);
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .btn-price:hover {
+      border-color: var(--vermilion);
+      color: var(--vermilion);
+      background: var(--vermilion-lt);
+    }
+    .btn-price.cta-fill {
+      background: var(--vermilion);
+      border-color: var(--vermilion);
+      color: #FDF8F3;
+    }
+    .btn-price.cta-fill:hover {
+      background: var(--vermilion-dk);
+      border-color: var(--vermilion-dk);
+      color: #FDF8F3;
+    }
+    .btn-price.cta-ghost-gold {
+      border-color: var(--border-gold);
+      color: var(--gold);
+    }
+    .btn-price.cta-ghost-gold:hover {
+      background: var(--gold-lt);
+      border-color: var(--gold);
+    }
+
+    .pricing-footnote {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0;
+    }
+    .pricing-footnote::before,
+    .pricing-footnote::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--parchment-dk);
+    }
+    .pricing-footnote span {
+      font-family: "Noto Serif", serif;
+      font-style: italic;
+      font-size: 11px;
+      color: var(--ink-faint);
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+
+    /* ── Word Bank ── */
+    .wb-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 1.5rem;
+      min-height: 520px;
+    }
+    .wb-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .wb-set-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      flex: 1;
+      background: var(--parchment-dk);
+      border: 1px solid var(--parchment-dk);
+    }
+    .wb-set-item {
+      background: var(--surface);
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: background 0.15s;
+    }
+    .wb-set-item:hover { background: var(--parchment); }
+    .wb-set-item.active {
+      background: var(--vermilion-lt);
+      border-left-color: var(--vermilion);
+    }
+    .wb-set-hanzi {
+      font-family: "Noto Serif SC", serif;
+      font-size: 18px;
+      color: var(--ink-faint);
+      width: 24px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .wb-set-item.active .wb-set-hanzi { color: var(--vermilion); }
+    .wb-set-info { flex: 1; min-width: 0; }
+    .wb-set-name {
+      font-family: "Noto Serif SC", serif;
+      font-size: 13px;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .wb-set-count {
+      font-size: 10px;
+      font-style: italic;
+      color: var(--ink-faint);
+      margin-top: 2px;
+    }
+    .wb-set-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--parchment-dk);
+      font-size: 14px;
+      padding: 2px 4px;
+      line-height: 1;
+      transition: color 0.15s;
+      flex-shrink: 0;
+    }
+    .wb-set-del:hover { color: var(--vermilion); }
+
+    /* new set button */
+    .btn-new-set {
+      width: 100%;
+      padding: 10px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      border: 1px dashed var(--border-gold);
+      background: transparent;
+      color: var(--gold);
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 10px;
+    }
+    .btn-new-set:hover { background: var(--gold-lt); }
+
+    /* main panel */
+    .wb-main {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .wb-empty {
+      flex: 1;
+      border: 1px dashed var(--border-gold);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 3rem;
+      text-align: center;
+    }
+    .wb-empty-char {
+      font-family: "Noto Serif SC", serif;
+      font-size: 48px;
+      font-weight: 300;
+      color: var(--parchment-dk);
+      line-height: 1;
+    }
+    .wb-empty-text {
+      font-size: 12px;
+      font-style: italic;
+      color: var(--ink-faint);
+    }
+
+    /* set editor */
+    .wb-editor { display: flex; flex-direction: column; gap: 1.25rem; }
+    .wb-editor-head {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .wb-set-title-input {
+      font-family: "Noto Serif SC", serif;
+      font-size: 16px;
+      color: var(--ink);
+      border: none;
+      border-bottom: 1px solid var(--border-ink);
+      background: transparent;
+      padding: 4px 0;
+      outline: none;
+      flex: 1;
+      letter-spacing: 1px;
+    }
+    .wb-set-title-input:focus { border-bottom-color: var(--vermilion); }
+
+    /* word entry area */
+    .wb-input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+    .wb-input-group { display: flex; flex-direction: column; gap: 5px; }
+    .wb-input-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+    }
+    .wb-input {
+      padding: 8px 10px;
+      border: none;
+      border-bottom: 1px solid var(--border-ink);
+      background: transparent;
+      font-family: "Noto Serif SC", serif;
+      font-size: 13px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .wb-input:focus { border-bottom-color: var(--vermilion); }
+    .wb-input::placeholder { color: var(--parchment-dk); font-style: italic; }
+    .btn-add-word {
+      padding: 8px 14px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      border: 1px solid var(--border-ink);
+      background: transparent;
+      color: var(--ink-mid);
+      cursor: pointer;
+      white-space: nowrap;
+      align-self: end;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-add-word:hover { border-color: var(--vermilion); color: var(--vermilion); background: var(--vermilion-lt); }
+
+    /* word table */
+    .wb-word-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--parchment-dk);
+    }
+    .wb-word-table th {
+      font-family: "Noto Serif SC", serif;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--ink-faint);
+      padding: 9px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--parchment-dk);
+      background: var(--parchment-lt);
+      font-weight: 400;
+    }
+    .wb-word-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--parchment-dk);
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .wb-word-table tr:last-child td { border-bottom: none; }
+    .wb-word-table tr:nth-child(odd) td { background: var(--surface); }
+    .wb-word-table tr:nth-child(even) td { background: var(--parchment-lt); }
+    .wb-char-cell {
+      font-family: "Noto Serif SC", serif;
+      font-size: 18px;
+      color: var(--vermilion);
+    }
+    .wb-pinyin-cell {
+      font-family: "Noto Serif", serif;
+      font-style: italic;
+      font-size: 12px;
+      color: var(--ink-faint);
+    }
+    .wb-del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--parchment-dk);
+      font-size: 13px;
+      padding: 2px 6px;
+      transition: color 0.15s;
+    }
+    .wb-del-btn:hover { color: var(--vermilion); }
+
+    /* action bar */
+    .wb-action-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--parchment-dk);
+    }
+    .btn-generate {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      border: 1px solid var(--border-ink);
+      background: var(--surface);
+      color: var(--ink-mid);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-generate:hover { border-color: var(--vermilion); color: var(--vermilion); background: var(--vermilion-lt); }
+    .btn-generate .gen-icon {
+      font-family: "Noto Serif SC", serif;
+      font-size: 14px;
+      color: var(--gold);
+    }
+
+    /* modal overlay for new set */
+    .wb-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28,24,20,0.5);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .wb-modal-overlay.open { display: flex; }
+    .wb-modal {
+      background: var(--surface);
+      border: 1px solid var(--parchment-dk);
+      padding: 2rem;
+      width: 360px;
+      position: relative;
+    }
+    .wb-modal::before, .wb-modal::after {
+      content: "";
+      position: absolute;
+      width: 14px; height: 14px;
+      border-color: var(--gold);
+      border-style: solid;
+    }
+    .wb-modal::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+    .wb-modal::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+    .wb-modal h3 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--ink);
+      letter-spacing: 2px;
+      margin-bottom: 1.25rem;
+    }
+    .wb-modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.25rem;
+      justify-content: flex-end;
+    }
+    .btn-modal-cancel {
+      padding: 8px 16px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      border: 1px solid var(--border-ink);
+      background: transparent;
+      color: var(--ink-faint);
+      cursor: pointer;
+    }
+    .btn-modal-confirm {
+      padding: 8px 16px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      border: 1px solid var(--vermilion);
+      background: var(--vermilion);
+      color: #FDF8F3;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-modal-confirm:hover { background: var(--vermilion-dk); }
+
+
+    /* ── Settings ── */
+    .settings-sections { display: flex; flex-direction: column; gap: 2rem; max-width: 560px; }
+    .settings-block {
+      border: 1px solid var(--parchment-dk);
+    }
+    .settings-block-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--parchment-dk);
+      background: var(--parchment-lt);
+    }
+    .settings-block-hanzi {
+      font-family: "Noto Serif SC", serif;
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--vermilion);
+      line-height: 1;
+    }
+    .settings-block-title {
+      font-family: "Noto Serif SC", serif;
+      font-size: 13px;
+      color: var(--ink);
+      letter-spacing: 1px;
+    }
+    .settings-block-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+    .settings-row { display: flex; flex-direction: column; gap: 6px; }
+    .settings-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+    }
+    .settings-desc {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-faint);
+      line-height: 1.6;
+    }
+    .settings-input-row { display: flex; gap: 8px; align-items: stretch; }
+    .settings-input {
+      flex: 1;
+      padding: 9px 12px;
+      border: none;
+      border-bottom: 1px solid var(--border-ink);
+      background: transparent;
+      font-family: "Noto Serif", serif;
+      font-size: 13px;
+      color: var(--ink);
+      outline: none;
+      letter-spacing: 0.5px;
+      transition: border-color 0.15s;
+      min-width: 0;
+    }
+    .settings-input:focus { border-bottom-color: var(--vermilion); }
+    .settings-input::placeholder { color: var(--parchment-dk); font-style: italic; }
+    .btn-settings-save {
+      padding: 9px 18px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      border: 1px solid var(--border-ink);
+      background: transparent;
+      color: var(--ink-mid);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-settings-save:hover { border-color: var(--vermilion); color: var(--vermilion); background: var(--vermilion-lt); }
+    .btn-settings-clear {
+      padding: 9px 14px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      border: 1px solid var(--border-ink);
+      background: transparent;
+      color: var(--ink-faint);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-settings-clear:hover { background: var(--parchment); color: var(--ink-mid); }
+    .settings-status {
+      font-size: 11px;
+      font-style: italic;
+      min-height: 16px;
+      transition: opacity 0.3s;
+    }
+    .settings-status.ok  { color: #2A6030; }
+    .settings-status.err { color: var(--vermilion); }
+    .key-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-style: italic;
+    }
+    .key-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--parchment-dk);
+      flex-shrink: 0;
+    }
+    .key-dot.set { background: #4A9060; }
+    #sb-status-dot { width:7px;height:7px;border-radius:50%;background:var(--parchment-dk);flex-shrink:0; }
+    #sb-status-dot.set { background:#4A9060; }
+
+
+    /* ── Generate Modal ── */
+    .gen-overlay {
+      position: fixed; inset: 0;
+      background: rgba(28,24,20,0.55);
+      z-index: 200;
+      display: none; align-items: center; justify-content: center;
+    }
+    .gen-overlay.open { display: flex; }
+    .gen-modal {
+      background: var(--surface);
+      border: 1px solid var(--parchment-dk);
+      width: 560px; max-width: 95vw;
+      max-height: 90vh;
+      display: flex; flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .gen-modal::before, .gen-modal::after {
+      content: ""; position: absolute;
+      width: 14px; height: 14px;
+      border-color: var(--gold); border-style: solid; z-index: 1;
+    }
+    .gen-modal::before { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+    .gen-modal::after  { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+    .gen-modal-head {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--parchment-dk);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .gen-modal-hanzi { font-family:"Noto Serif SC",serif; font-size:28px; font-weight:300; color:var(--vermilion); line-height:1; }
+    .gen-modal-title { font-family:"Noto Serif SC",serif; font-size:15px; color:var(--ink); letter-spacing:1.5px; }
+    .gen-modal-subtitle { font-size:11px; font-style:italic; color:var(--ink-faint); margin-top:2px; }
+    .gen-modal-body { padding:1.5rem; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:1.25rem; }
+    .gen-modal-foot {
+      padding:1rem 1.5rem;
+      border-top:1px solid var(--parchment-dk);
+      display:flex; gap:10px; justify-content:flex-end; align-items:center;
+    }
+
+    /* Section blocks inside modal */
+    .gen-section { display:flex; flex-direction:column; gap:10px; }
+    .gen-section-title {
+      font-family:"Noto Serif SC",serif; font-size:10px;
+      letter-spacing:2.5px; color:var(--ink-faint); text-transform:uppercase;
+      border-bottom:1px solid var(--parchment-dk); padding-bottom:6px;
+    }
+    .gen-row { display:flex; align-items:center; gap:12px; justify-content:space-between; }
+    .gen-row-label { font-size:12px; color:var(--ink-mid); flex:1; }
+    .gen-row-label span { font-size:10px; font-style:italic; color:var(--ink-faint); display:block; margin-top:1px; }
+    .gen-toggle { display:flex; align-items:center; gap:8px; }
+    .gen-checkbox { width:16px; height:16px; cursor:pointer; accent-color:var(--vermilion); }
+    .gen-stepper { display:flex; align-items:center; gap:6px; }
+    .gen-stepper-btn {
+      width:26px; height:26px; border:1px solid var(--border-ink);
+      background:transparent; color:var(--ink-mid); cursor:pointer;
+      font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center;
+      transition:background 0.12s;
+    }
+    .gen-stepper-btn:hover { background:var(--parchment); }
+    .gen-stepper-val { font-family:"Noto Serif SC",serif; font-size:14px; color:var(--ink); min-width:18px; text-align:center; }
+    .gen-note {
+      font-size:11px; font-style:italic; color:var(--ink-faint);
+      border-left:2px solid var(--border-gold); padding-left:10px; line-height:1.6;
+    }
+
+    /* Generate button in modal */
+    .btn-gen-go {
+      padding:10px 22px;
+      font-family:"Noto Serif SC",serif; font-size:12px; letter-spacing:2px;
+      background:var(--vermilion); color:#FDF8F3;
+      border:1px solid var(--vermilion); cursor:pointer;
+      transition:background 0.15s;
+    }
+    .btn-gen-go:hover { background:var(--vermilion-dk); }
+    .btn-gen-go:disabled { opacity:0.5; cursor:not-allowed; }
+    .btn-gen-cancel {
+      padding:10px 16px;
+      font-family:"Noto Serif SC",serif; font-size:11px; letter-spacing:1px;
+      background:transparent; color:var(--ink-faint);
+      border:1px solid var(--border-ink); cursor:pointer;
+    }
+    .gen-status { font-size:11px; font-style:italic; color:var(--ink-faint); flex:1; }
+    .gen-status.err { color:var(--vermilion); }
+
+    /* ── Output Modal (result viewer) ── */
+    .out-overlay {
+      position:fixed; inset:0;
+      background:rgba(28,24,20,0.6);
+      z-index:300; display:none; align-items:flex-start; justify-content:center;
+      padding:2rem 1rem; overflow-y:auto;
+    }
+    .out-overlay.open { display:flex; }
+    .out-modal {
+      background:var(--surface); border:1px solid var(--parchment-dk);
+      width:700px; max-width:98vw;
+      display:flex; flex-direction:column; position:relative;
+    }
+    .out-modal::before, .out-modal::after {
+      content:""; position:absolute;
+      width:14px; height:14px; border-color:var(--gold); border-style:solid; z-index:1;
+    }
+    .out-modal::before { top:8px; left:8px; border-width:1px 0 0 1px; }
+    .out-modal::after  { bottom:8px; right:8px; border-width:0 1px 1px 0; }
+    .out-head {
+      padding:1rem 1.5rem; border-bottom:1px solid var(--parchment-dk);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .out-head-left { display:flex; align-items:center; gap:10px; }
+    .out-head-title { font-family:"Noto Serif SC",serif; font-size:14px; color:var(--ink); letter-spacing:1px; }
+    .out-head-sub { font-size:11px; font-style:italic; color:var(--ink-faint); }
+    .out-actions { display:flex; gap:8px; }
+    .btn-out-action {
+      padding:7px 14px; font-family:"Noto Serif SC",serif; font-size:10px; letter-spacing:1.5px;
+      border:1px solid var(--border-ink); background:transparent; color:var(--ink-mid); cursor:pointer;
+      transition:background 0.12s, border-color 0.12s;
+    }
+    .btn-out-action:hover { border-color:var(--vermilion); color:var(--vermilion); background:var(--vermilion-lt); }
+    .btn-out-close {
+      background:none; border:none; cursor:pointer; font-size:18px;
+      color:var(--ink-faint); padding:4px 8px; line-height:1;
+    }
+    .btn-out-close:hover { color:var(--ink); }
+    .out-body { padding:2rem; }
+
+    /* Rendered output styles */
+    .ws-doc { font-family:"Noto Serif",Georgia,serif; color:var(--ink); max-width:640px; margin:0 auto; }
+    .ws-doc-head { text-align:center; margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid var(--parchment-dk); }
+    .ws-doc-title { font-family:"Noto Serif SC",serif; font-size:20px; font-weight:300; color:var(--vermilion); letter-spacing:4px; }
+    .ws-doc-meta { font-size:11px; font-style:italic; color:var(--ink-faint); margin-top:6px; letter-spacing:1px; }
+    .ws-section { margin-bottom:2rem; }
+    .ws-section-head {
+      display:flex; align-items:center; gap:10px;
+      margin-bottom:1rem; padding-bottom:6px; border-bottom:1px solid var(--parchment-dk);
+    }
+    .ws-section-num { font-family:"Noto Serif SC",serif; font-size:18px; color:var(--parchment-dk); }
+    .ws-section-title { font-family:"Noto Serif SC",serif; font-size:13px; color:var(--ink); letter-spacing:1px; }
+    .ws-q { margin-bottom:1rem; }
+    .ws-q-text { font-size:13px; line-height:1.8; margin-bottom:6px; }
+    .ws-q-blank { display:inline-block; min-width:120px; border-bottom:1px solid var(--ink); margin:0 4px; }
+    .ws-choices { list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:4px 1rem; margin-top:6px; }
+    .ws-choices li { font-size:12px; display:flex; gap:6px; }
+    .ws-choices li::before { content:attr(data-letter)"."; color:var(--ink-faint); flex-shrink:0; }
+    .ws-answer-line {
+      border-bottom:1px solid var(--border-ink); height:28px; margin:6px 0;
+      background:repeating-linear-gradient(transparent,transparent 27px,var(--parchment-dk) 28px);
+    }
+    .ws-passage {
+      background:var(--parchment-lt); border:1px solid var(--parchment-dk);
+      padding:1rem 1.25rem; font-size:13px; line-height:2; margin-bottom:1rem;
+      font-family:"Noto Serif SC",serif; color:var(--ink);
+    }
+    .ws-grade-box {
+      float:right; border:1px solid var(--border-ink);
+      width:100px; height:56px; text-align:center;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    }
+    .ws-grade-label { font-family:"Noto Serif SC",serif; font-size:9px; color:var(--ink-faint); letter-spacing:2px; }
+    .ws-grade-line { width:60px; border-bottom:1px solid var(--ink); margin-top:10px; }
+    .ws-name-row { display:flex; gap:2rem; margin-bottom:1.5rem; clear:both; }
+    .ws-name-field { flex:1; display:flex; flex-direction:column; gap:4px; }
+    .ws-name-label { font-size:10px; color:var(--ink-faint); letter-spacing:1.5px; font-family:"Noto Serif SC",serif; }
+    .ws-name-line { border-bottom:1px solid var(--ink-faint); height:24px; }
+
+    /* ── Flashcard viewer ── */
+    .fc-viewer {
+      display:flex; flex-direction:column; align-items:center; gap:1.5rem;
+    }
+    .fc-progress {
+      font-family:"Noto Serif SC",serif; font-size:11px; color:var(--ink-faint);
+      letter-spacing:2px;
+    }
+    .fc-card-wrap {
+      width:100%; max-width:460px; height:220px;
+      perspective:1000px; cursor:pointer;
+    }
+    .fc-card-inner {
+      width:100%; height:100%; position:relative;
+      transform-style:preserve-3d; transition:transform 0.5s ease;
+    }
+    .fc-card-inner.flipped { transform:rotateY(180deg); }
+    .fc-face {
+      position:absolute; inset:0;
+      backface-visibility:hidden;
+      border:1px solid var(--parchment-dk);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:8px; padding:2rem;
+    }
+    .fc-face::before, .fc-face::after {
+      content:""; position:absolute;
+      width:12px; height:12px; border-color:var(--gold); border-style:solid;
+    }
+    .fc-face::before { top:8px; left:8px; border-width:1px 0 0 1px; }
+    .fc-face::after  { bottom:8px; right:8px; border-width:0 1px 1px 0; }
+    .fc-front { background:var(--surface); }
+    .fc-back  { background:var(--parchment-lt); transform:rotateY(180deg); }
+    .fc-chinese { font-family:"Noto Serif SC",serif; font-size:52px; font-weight:300; color:var(--vermilion); line-height:1; }
+    .fc-pinyin  { font-family:"Noto Serif",serif; font-style:italic; font-size:16px; color:var(--ink-faint); }
+    .fc-english { font-family:"Noto Serif SC",serif; font-size:20px; color:var(--ink); letter-spacing:1px; }
+    .fc-hint    { font-size:10px; font-style:italic; color:var(--parchment-dk); letter-spacing:1px; }
+    .fc-controls { display:flex; gap:12px; align-items:center; }
+    .btn-fc {
+      padding:8px 20px; font-family:"Noto Serif SC",serif; font-size:11px; letter-spacing:2px;
+      border:1px solid var(--border-ink); background:transparent; color:var(--ink-mid); cursor:pointer;
+      transition:background 0.12s;
+    }
+    .btn-fc:hover { background:var(--parchment); }
+    .btn-fc-dl {
+      padding:8px 18px; font-family:"Noto Serif SC",serif; font-size:11px; letter-spacing:2px;
+      border:1px solid var(--border-gold); background:transparent; color:var(--gold); cursor:pointer;
+      transition:background 0.12s;
+    }
+    .btn-fc-dl:hover { background:var(--gold-lt); }
+    .fc-shuffle-label { font-size:10px; font-style:italic; color:var(--ink-faint); }
+
+
+    /* ── Paste & Detect Modal ── */
+    .paste-overlay {
+      position:fixed; inset:0;
+      background:rgba(28,24,20,0.55);
+      z-index:200; display:none; align-items:center; justify-content:center;
+    }
+    .paste-overlay.open { display:flex; }
+    .paste-modal {
+      background:var(--surface); border:1px solid var(--parchment-dk);
+      width:580px; max-width:95vw; max-height:90vh;
+      display:flex; flex-direction:column; position:relative; overflow:hidden;
+    }
+    .paste-modal::before,.paste-modal::after {
+      content:""; position:absolute;
+      width:14px; height:14px; border-color:var(--gold); border-style:solid; z-index:1;
+    }
+    .paste-modal::before { top:8px; left:8px; border-width:1px 0 0 1px; }
+    .paste-modal::after  { bottom:8px; right:8px; border-width:0 1px 1px 0; }
+    .paste-modal-head {
+      padding:1.1rem 1.5rem; border-bottom:1px solid var(--parchment-dk);
+      display:flex; align-items:center; gap:12px; flex-shrink:0;
+    }
+    .paste-modal-hanzi { font-family:"Noto Serif SC",serif; font-size:26px; font-weight:300; color:var(--gold); }
+    .paste-modal-title { font-family:"Noto Serif SC",serif; font-size:14px; color:var(--ink); letter-spacing:1px; }
+    .paste-modal-sub   { font-size:11px; font-style:italic; color:var(--ink-faint); margin-top:2px; }
+    .paste-modal-body  { padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:1rem; flex:1; overflow-y:auto; }
+    .paste-examples {
+      font-size:11px; font-style:italic; color:var(--ink-faint);
+      border-left:2px solid var(--border-gold); padding-left:10px; line-height:1.9;
+    }
+    .paste-textarea {
+      width:100%; min-height:160px; resize:vertical;
+      padding:10px 12px;
+      border:1px solid var(--border-ink);
+      background:var(--parchment-lt);
+      font-family:"Noto Serif SC",serif; font-size:13px; color:var(--ink);
+      outline:none; line-height:1.8;
+      transition:border-color 0.15s;
+    }
+    .paste-textarea:focus { border-color:var(--gold); }
+    .paste-textarea::placeholder { color:var(--parchment-dk); font-style:italic; }
+
+    /* preview table */
+    .paste-preview { display:none; flex-direction:column; gap:10px; }
+    .paste-preview.visible { display:flex; }
+    .paste-preview-label {
+      font-family:"Noto Serif SC",serif; font-size:9px; letter-spacing:2.5px;
+      color:var(--ink-faint); text-transform:uppercase;
+      border-bottom:1px solid var(--parchment-dk); padding-bottom:6px;
+    }
+    .paste-table {
+      width:100%; border-collapse:collapse; border:1px solid var(--parchment-dk);
+    }
+    .paste-table th {
+      font-family:"Noto Serif SC",serif; font-size:9px; letter-spacing:2px;
+      color:var(--ink-faint); padding:8px 10px; text-align:left;
+      border-bottom:1px solid var(--parchment-dk); background:var(--parchment-lt); font-weight:400;
+    }
+    .paste-table td {
+      padding:8px 10px; font-size:12px; color:var(--ink);
+      border-bottom:1px solid var(--parchment-dk);
+    }
+    .paste-table tr:last-child td { border-bottom:none; }
+    .paste-table tr:nth-child(odd) td  { background:var(--surface); }
+    .paste-table tr:nth-child(even) td { background:var(--parchment-lt); }
+    .paste-char-cell { font-family:"Noto Serif SC",serif; font-size:17px; color:var(--vermilion); }
+    .paste-pinyin-cell { font-family:"Noto Serif",serif; font-style:italic; font-size:11px; color:var(--ink-faint); }
+    .paste-row-del { background:none; border:none; cursor:pointer; color:var(--parchment-dk); font-size:13px; padding:2px 6px; transition:color 0.12s; }
+    .paste-row-del:hover { color:var(--vermilion); }
+
+    .paste-modal-foot {
+      padding:1rem 1.5rem; border-top:1px solid var(--parchment-dk);
+      display:flex; gap:10px; justify-content:flex-end; align-items:center; flex-shrink:0;
+    }
+    .paste-status { flex:1; font-size:11px; font-style:italic; color:var(--ink-faint); }
+    .paste-status.err { color:var(--vermilion); }
+    .paste-status.ok  { color:#2A6030; }
+    .btn-paste-detect {
+      padding:9px 20px; font-family:"Noto Serif SC",serif; font-size:11px; letter-spacing:2px;
+      background:var(--gold); color:#FDF8F3; border:1px solid var(--gold); cursor:pointer;
+      transition:background 0.15s;
+    }
+    .btn-paste-detect:hover { background:#9A7020; }
+    .btn-paste-detect:disabled { opacity:0.5; cursor:not-allowed; }
+    .btn-paste-add {
+      padding:9px 20px; font-family:"Noto Serif SC",serif; font-size:11px; letter-spacing:2px;
+      background:var(--vermilion); color:#FDF8F3; border:1px solid var(--vermilion); cursor:pointer;
+      transition:background 0.15s; display:none;
+    }
+    .btn-paste-add:hover { background:var(--vermilion-dk); }
+    .btn-paste-cancel {
+      padding:9px 16px; font-family:"Noto Serif SC",serif; font-size:11px; letter-spacing:1px;
+      background:transparent; color:var(--ink-faint); border:1px solid var(--border-ink); cursor:pointer;
+    }
+
+    @media (max-width: 700px) {
+      .auth-card { padding: 2rem 1.25rem 1.75rem; }
+      .sidebar { width: 56px; }
+      .sidebar-section-label, .nav-label { display: none; }
+      .nav-item { justify-content: center; padding: 10px; }
+      .dash-main { padding: 1.5rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="page-loading" class="page active" style="background:#110D0A;align-items:center;justify-content:center;flex-direction:column;min-height:100vh;position:relative;overflow:hidden;">
+  <canvas id="lantern-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+  <div id="loading-text" style="position:relative;z-index:2;text-align:center;opacity:0;transition:opacity 1.4s ease;">
+    <div style="font-family:'Noto Serif SC',serif;font-size:52px;font-weight:300;color:#C0392B;letter-spacing:12px;line-height:1;">汉语课</div>
+    <div style="font-family:'Noto Serif',serif;font-style:italic;font-size:13px;color:rgba(245,239,228,0.4);letter-spacing:3px;margin-top:14px;">Hànyǔ Kè &nbsp;·&nbsp; Chinese Class</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════ AUTH PAGE ══════════════════════════ -->
+<div id="page-auth" class="page">
+  <div class="auth-seal-row" style="width:100%;max-width:400px;">
+    <div class="seal-line"></div>
+    <div class="seal-glyph">漢語</div>
+    <div class="seal-line"></div>
+  </div>
+
+  <div class="auth-card">
+    <div class="logo-block">
+      <span class="logo-hanzi">汉语课</span>
+      <div class="logo-rule"></div>
+      <div class="logo-pinyin">Hànyǔ Kè &nbsp;·&nbsp; Chinese Class</div>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('login')">登入 &nbsp;Sign In</button>
+      <button class="tab-btn" onclick="switchTab('signup')">注册 &nbsp;Register</button>
+    </div>
+
+    <div id="alert-box" class="alert"></div>
+
+    <!-- LOGIN -->
+    <form id="form-login" class="auth-form active" onsubmit="handleLogin(event)">
+      <div class="input-group">
+        <span class="field-label">Email</span>
+        <input id="login-email" type="email" placeholder="you@example.com" required />
+      </div>
+      <div class="input-group">
+        <span class="field-label">Password</span>
+        <input id="login-password" type="password" placeholder="••••••••" required />
+      </div>
+      <button type="submit" class="btn-primary" id="btn-login">进入 &nbsp; Enter</button>
+      <div class="skip-wrap">
+        <button type="button" class="btn-skip" onclick="skipSignIn()">Skip sign-in (testing only)</button>
+      </div>
+    </form>
+
+    <!-- SIGN UP -->
+    <form id="form-signup" class="auth-form" onsubmit="handleSignup(event)">
+      <div class="input-group">
+        <span class="field-label">Full Name</span>
+        <input id="signup-name" type="text" placeholder="Ms. Li / Alex Chen" required />
+      </div>
+      <div class="input-group">
+        <span class="field-label">Email</span>
+        <input id="signup-email" type="email" placeholder="you@example.com" required />
+      </div>
+      <div class="input-group">
+        <span class="field-label">Password</span>
+        <input id="signup-password" type="password" placeholder="at least 6 characters" minlength="6" required />
+      </div>
+      <div class="input-group">
+        <span class="field-label">Role</span>
+        <div class="role-row">
+          <label class="role-card selected" id="role-teacher-card">
+            <input type="radio" name="role" value="teacher" checked onchange="selectRole('teacher')" />
+            <span class="role-hanzi">師</span>
+            <div class="role-label">Teacher</div>
+          </label>
+          <label class="role-card" id="role-student-card">
+            <input type="radio" name="role" value="student" onchange="selectRole('student')" />
+            <span class="role-hanzi">生</span>
+            <div class="role-label">Student</div>
+          </label>
+          <label class="role-card" id="role-parent-card">
+            <input type="radio" name="role" value="parent" onchange="selectRole('parent')" />
+            <span class="role-hanzi">親</span>
+            <div class="role-label">Parent</div>
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary" id="btn-signup">創建 &nbsp; Create Account</button>
+      <div class="skip-wrap">
+        <button type="button" class="btn-skip" onclick="skipSignIn()">Skip sign-in (testing only)</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="auth-foot">
+    <div class="auth-foot-seal">學而時習之，不亦說乎</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ DASHBOARD ══════════════════════════ -->
+<div id="page-dashboard" class="page">
+  <div class="topbar">
+    <div class="topbar-brand">汉语课</div>
+    <div class="topbar-right">
+      <span class="user-chip" id="dash-user-label"></span>
+      <span class="role-badge" id="dash-role-badge"></span>
+      <button class="btn-signout" onclick="handleSignOut()">退出</button>
+    </div>
+  </div>
+
+  <div class="dash-shell">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+      <!-- nav items injected by JS based on role -->
+    </nav>
+
+    <!-- MAIN PANELS -->
+    <main class="dash-main">
+
+      <!-- ① CLASS POINTS (teacher + student) -->
+      <div class="section-panel" id="panel-points">
+        <div class="section-head">
+          <div class="section-head-hanzi">星</div>
+          <div class="section-head-text">
+            <h2>Class Points</h2>
+            <p>Merit tokens awarded for excellent work and participation</p>
+          </div>
+        </div>
+        <div class="stat-row" id="points-stats">
+          <div class="stat-box"><div class="stat-val" id="stat-total-pts">—</div><div class="stat-label">Your Points</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-rank">—</div><div class="stat-label">Class Rank</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-this-week">—</div><div class="stat-label">This Week</div></div>
+        </div>
+        <!-- teacher view: award panel -->
+        <div id="teacher-award-panel">
+          <div class="section-head" style="margin-top:1.5rem;">
+            <div class="section-head-hanzi" style="font-size:20px;">授</div>
+            <div class="section-head-text"><h2 style="font-size:14px;">Award Points</h2><p>Click a student to add merit</p></div>
+          </div>
+          <div class="points-grid" id="students-grid"></div>
+        </div>
+      </div>
+
+      <!-- ② LEADERBOARD (teacher + student) -->
+      <div class="section-panel" id="panel-leaderboard">
+        <div class="section-head">
+          <div class="section-head-hanzi">榜</div>
+          <div class="section-head-text">
+            <h2>Leaderboard</h2>
+            <p>Weekly class rankings · 本週排名</p>
+          </div>
+        </div>
+        <table class="leaderboard-table">
+          <thead><tr><th>Rank</th><th>Student</th><th style="text-align:right;">Points</th></tr></thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+      </div>
+
+      <!-- ③ HOMEWORK (teacher + student) -->
+      <div class="section-panel" id="panel-homework">
+        <div class="section-head">
+          <div class="section-head-hanzi">作</div>
+          <div class="section-head-text">
+            <h2>Homework</h2>
+            <p>Assignments and deadlines · 作業</p>
+          </div>
+        </div>
+        <div class="hw-list" id="hw-list"></div>
+      </div>
+
+      <!-- ④ GRADES (teacher + student + parent) -->
+      <div class="section-panel" id="panel-grades">
+        <div class="section-head">
+          <div class="section-head-hanzi">績</div>
+          <div class="section-head-text">
+            <h2>Grades</h2>
+            <p>Assessment records · 成績</p>
+          </div>
+        </div>
+        <!-- teacher: dropdown to select student -->
+        <div id="teacher-student-select" style="display:none;margin-bottom:1.5rem;">
+          <span class="field-label" style="display:block;margin-bottom:8px;">Viewing grades for</span>
+          <select id="grade-student-picker" onchange="renderGradesTable()" style="font-family:'Noto Serif SC',serif;font-size:13px;padding:8px 12px;border:1px solid var(--border-ink);border-radius:0;background:var(--surface);color:var(--ink);outline:none;"></select>
+        </div>
+        <div class="stat-row" style="margin-bottom:1.5rem;">
+          <div class="stat-box"><span class="grade-avg" id="grade-avg">—</span><div class="stat-label">Class Average</div></div>
+          <div class="stat-box"><div class="stat-val" id="grade-highest" style="font-size:20px;">—</div><div class="stat-label">Highest</div></div>
+          <div class="stat-box"><div class="stat-val" id="grade-count" style="font-size:20px;">—</div><div class="stat-label">Assignments</div></div>
+        </div>
+        <table class="grades-table">
+          <thead><tr><th>Assignment</th><th>Unit</th><th>Date</th><th>Grade</th><th>Score</th></tr></thead>
+          <tbody id="grades-body"></tbody>
+        </table>
+      </div>
+
+      <!-- ⑤ LESSON LIBRARY (teacher only) -->
+      <div class="section-panel" id="panel-lessons">
+        <div class="section-head">
+          <div class="section-head-hanzi">書</div>
+          <div class="section-head-text">
+            <h2>Lesson Library</h2>
+            <p>Vocab lists, worksheets, and audio · 教材</p>
+          </div>
+        </div>
+        <div class="lesson-grid" id="lesson-grid"></div>
+      </div>
+
+      <!-- ⑥ PARENT MESSAGES (teacher + parent) -->
+      <div class="section-panel" id="panel-messages">
+        <div class="section-head">
+          <div class="section-head-hanzi">信</div>
+          <div class="section-head-text">
+            <h2>Messages</h2>
+            <p>Updates and notes home · 家長通知</p>
+          </div>
+        </div>
+        <div class="msg-list" id="msg-list"></div>
+      </div>
+
+
+      <!-- ⑦ PRICING (teacher only) -->
+      <div class="section-panel" id="panel-pricing">
+        <div class="section-head">
+          <div class="section-head-hanzi">價</div>
+          <div class="section-head-text">
+            <h2>Plans &amp; Pricing</h2>
+            <p>Choose the plan that fits your classroom · 選擇方案</p>
+          </div>
+        </div>
+
+        <div class="pricing-preamble">
+          <div class="pricing-preamble-rule">
+            <span class="pricing-preamble-glyph">學 · 師 · 導</span>
+          </div>
+          <p>All plans include a 14-day free trial &nbsp;·&nbsp; No card required</p>
+        </div>
+
+        <div class="pricing-tiers">
+
+          <!-- 學者 -->
+          <div class="pricing-card">
+            <div class="card-seal-strip">
+              <div class="card-seal-char">學</div>
+            </div>
+            <div class="card-head">
+              <div class="card-tier-name">學者</div>
+              <div class="card-tier-pinyin">Xuézhě &nbsp;·&nbsp; Scholar</div>
+              <div class="card-price-row">
+                <div class="card-amount">Free</div>
+                <div class="card-price-meta">
+                  <span class="card-period">forever</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-features">
+              <div class="feature-row"><span class="feature-mark">一</span>Up to 15 students</div>
+              <div class="feature-row"><span class="feature-mark">二</span>Class points &amp; leaderboard</div>
+              <div class="feature-row"><span class="feature-mark">三</span>5 homework assignments / month</div>
+              <div class="feature-row off"><span class="feature-mark">·</span>Grades &amp; reports</div>
+              <div class="feature-row off"><span class="feature-mark">·</span>Lesson library</div>
+              <div class="feature-row off"><span class="feature-mark">·</span>Parent messages</div>
+              <div class="feature-row off"><span class="feature-mark">·</span>Priority support</div>
+            </div>
+            <div class="card-footer">
+              <button class="btn-price">現用 &nbsp;·&nbsp; Current plan</button>
+            </div>
+          </div>
+
+          <!-- 師傅 featured -->
+          <div class="pricing-card featured">
+            <div class="card-seal-strip">
+              <div class="card-seal-char">師</div>
+              <div class="card-seal-badge">推薦</div>
+            </div>
+            <div class="card-head">
+              <div class="card-tier-name">師傅</div>
+              <div class="card-tier-pinyin">Shīfu &nbsp;·&nbsp; Master</div>
+              <div class="card-price-row">
+                <div class="card-currency">$</div>
+                <div class="card-amount">5</div>
+                <div class="card-price-meta">
+                  <span class="card-period">per month</span>
+                  <span class="card-period">每月</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-features">
+              <div class="feature-row"><span class="feature-mark">一</span>Up to 35 students</div>
+              <div class="feature-row"><span class="feature-mark">二</span>Class points &amp; leaderboard</div>
+              <div class="feature-row"><span class="feature-mark">三</span>Unlimited homework assignments</div>
+              <div class="feature-row"><span class="feature-mark">四</span>Grades &amp; progress reports</div>
+              <div class="feature-row"><span class="feature-mark">五</span>Lesson library</div>
+              <div class="feature-row"><span class="feature-mark">六</span>Parent messages</div>
+              <div class="feature-row off"><span class="feature-mark">·</span>Priority support</div>
+            </div>
+            <div class="card-footer">
+              <button class="btn-price cta-fill">升級 &nbsp;·&nbsp; Upgrade</button>
+            </div>
+          </div>
+
+          <!-- 導師 -->
+          <div class="pricing-card">
+            <div class="card-seal-strip">
+              <div class="card-seal-char">導</div>
+            </div>
+            <div class="card-head">
+              <div class="card-tier-name">導師</div>
+              <div class="card-tier-pinyin">Dǎoshī &nbsp;·&nbsp; Mentor</div>
+              <div class="card-price-row">
+                <div class="card-currency">$</div>
+                <div class="card-amount">10</div>
+                <div class="card-price-meta">
+                  <span class="card-period">per month</span>
+                  <span class="card-period">每月</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-features">
+              <div class="feature-row"><span class="feature-mark">一</span>Unlimited students</div>
+              <div class="feature-row"><span class="feature-mark">二</span>Class points &amp; leaderboard</div>
+              <div class="feature-row"><span class="feature-mark">三</span>Unlimited homework assignments</div>
+              <div class="feature-row"><span class="feature-mark">四</span>Grades &amp; progress reports</div>
+              <div class="feature-row"><span class="feature-mark">五</span>Lesson library</div>
+              <div class="feature-row"><span class="feature-mark">六</span>Parent messages</div>
+              <div class="feature-row"><span class="feature-mark">七</span>Priority support</div>
+            </div>
+            <div class="card-footer">
+              <button class="btn-price cta-ghost-gold">升級 &nbsp;·&nbsp; Upgrade</button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="pricing-footnote">
+          <span>Prices in USD &nbsp;·&nbsp; Billed monthly &nbsp;·&nbsp; Cancel anytime</span>
+        </div>
+      </div>
+
+
+      <!-- ⑧ WORD BANK (teacher only) -->
+      <div class="section-panel" id="panel-wordbank">
+        <div class="section-head">
+          <div class="section-head-hanzi">詞</div>
+          <div class="section-head-text">
+            <h2>Word Bank</h2>
+            <p>Vocabulary sets · used to generate worksheets and tests</p>
+          </div>
+        </div>
+
+        <div class="wb-layout">
+          <!-- Sidebar: set list -->
+          <div class="wb-sidebar">
+            <div class="wb-set-list" id="wb-set-list">
+              <!-- sets rendered by JS -->
+            </div>
+            <button class="btn-new-set" onclick="openNewSetModal()">＋ 新詞組 &nbsp;New Set</button>
+          </div>
+
+          <!-- Main: editor -->
+          <div class="wb-main" id="wb-main">
+            <div class="wb-empty" id="wb-empty">
+              <div class="wb-empty-char">詞</div>
+              <div class="wb-empty-text">Select a word set on the left,<br>or create a new one to begin.</div>
+            </div>
+            <div class="wb-editor" id="wb-editor" style="display:none;">
+              <!-- title -->
+              <div class="wb-editor-head">
+                <input class="wb-set-title-input" id="wb-set-title" placeholder="Set name (e.g. Unit 3 · Family)" onchange="saveCurrentSetTitle()" />
+              </div>
+
+              <!-- add word row -->
+              <div class="wb-input-row">
+                <div class="wb-input-group">
+                  <span class="wb-input-label">Chinese 漢字</span>
+                  <input class="wb-input" id="wb-in-chinese" placeholder="家" />
+                </div>
+                <div class="wb-input-group">
+                  <span class="wb-input-label">Pinyin 拼音</span>
+                  <input class="wb-input" id="wb-in-pinyin" placeholder="jiā" />
+                </div>
+                <div class="wb-input-group">
+                  <span class="wb-input-label">English 英文</span>
+                  <input class="wb-input" id="wb-in-english" placeholder="family" />
+                </div>
+                <button class="btn-add-word" onclick="addWord()">加入 Add</button>
+                <button class="btn-add-word" onclick="openPasteModal()" style="border-style:dashed;color:var(--gold);border-color:var(--border-gold);" title="Paste text and auto-detect words">貼 Paste &amp; Detect</button>
+              </div>
+
+              <!-- word table -->
+              <table class="wb-word-table" id="wb-word-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>漢字</th>
+                    <th>Pinyin</th>
+                    <th>English</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="wb-word-tbody"></tbody>
+              </table>
+
+              <!-- generate bar -->
+              <div class="wb-action-bar">
+                <button class="btn-generate" onclick="openGenModal('worksheet')">
+                  <span class="gen-icon">卷</span> Worksheet
+                </button>
+                <button class="btn-generate" onclick="openGenModal('test')">
+                  <span class="gen-icon">試</span> Test
+                </button>
+                <button class="btn-generate" onclick="openGenModal('flashcards')">
+                  <span class="gen-icon">習</span> Flashcards
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ⑨ SETTINGS (teacher only) -->
+      <div class="section-panel" id="panel-settings">
+        <div class="section-head">
+          <div class="section-head-hanzi">設</div>
+          <div class="section-head-text">
+            <h2>Settings</h2>
+            <p>API keys and preferences · 設定</p>
+          </div>
+        </div>
+
+        <div class="settings-sections">
+
+          <!-- API Status (server-managed) -->
+          <div class="settings-block">
+            <div class="settings-block-head">
+              <div class="settings-block-hanzi">鑰</div>
+              <div class="settings-block-title">API Configuration</div>
+            </div>
+            <div class="settings-block-body">
+              <div class="settings-row">
+                <span class="settings-label">AI Status</span>
+                <div class="key-indicator">
+                  <div class="key-dot" id="groq-key-dot"></div>
+                  <span id="groq-key-status-label">Checking…</span>
+                </div>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">Supabase Status</span>
+                <div class="key-indicator">
+                  <div class="key-dot" id="sb-status-dot"></div>
+                  <span id="sb-status-label">Checking…</span>
+                </div>
+              </div>
+              <div class="settings-desc" style="border-left:2px solid var(--border-gold);padding-left:10px;line-height:1.9;">
+                API keys are stored securely as <strong>environment variables</strong> on the server —
+                they are never sent to the browser.<br>
+                To update them, go to your <strong>Render dashboard → Environment</strong> and edit
+                <code style="font-size:11px;background:var(--parchment);padding:1px 5px;">ANTHROPIC_KEY</code>,
+                <code style="font-size:11px;background:var(--parchment);padding:1px 5px;">SUPABASE_URL</code>, and
+                <code style="font-size:11px;background:var(--parchment);padding:1px 5px;">SUPABASE_ANON</code>.
+              </div>
+            </div>
+          </div>
+
+          <!-- Supabase keys (placeholder) -->
+          <div class="settings-block">
+            <div class="settings-block-head">
+              <div class="settings-block-hanzi">庫</div>
+              <div class="settings-block-title">Supabase Connection</div>
+            </div>
+            <div class="settings-block-body">
+              <div class="settings-row">
+                <span class="settings-label">Project URL</span>
+                <div class="settings-input-row">
+                  <input class="settings-input" id="sb-url-input" type="text" placeholder="https://your-project.supabase.co" autocomplete="off" />
+                  <button class="btn-settings-save" onclick="saveSupabaseKeys()">保存 Save</button>
+                </div>
+              </div>
+              <div class="settings-row">
+                <span class="settings-label">Anon Key</span>
+                <div class="settings-input-row">
+                  <input class="settings-input" id="sb-anon-input" type="password" placeholder="eyJ…" autocomplete="off" />
+                  <button class="btn-settings-clear" onclick="clearSupabaseKeys()">清除</button>
+                </div>
+                <div class="settings-status" id="sb-key-msg"></div>
+              </div>
+              <div class="settings-desc">Reload the page after saving Supabase keys for them to take effect.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  // Supabase credentials are loaded from the server at runtime
+  const { createClient } = supabase;
+  let sb = null;
+
+  async function initSupabase() {
+    try {
+      const cfg = await fetch('/api/config').then(r => r.json());
+      if (cfg.supabaseUrl && cfg.supabaseAnon) {
+        sb = createClient(cfg.supabaseUrl, cfg.supabaseAnon);
+      } else {
+        console.warn('Supabase not configured — auth disabled.');
+      }
+    } catch(e) {
+      console.warn('Could not load server config:', e.message);
+    }
+  }
+
+  function showPage(id) {
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll(".tab-btn").forEach((b,i) =>
+      b.classList.toggle("active", (tab === "login") === (i === 0)));
+    document.getElementById("form-login").classList.toggle("active", tab === "login");
+    document.getElementById("form-signup").classList.toggle("active", tab === "signup");
+    clearAlert();
+  }
+
+  function selectRole(role) {
+    ["teacher","student","parent"].forEach(r =>
+      document.getElementById(`role-${r}-card`).classList.toggle("selected", r === role));
+  }
+
+  function showAlert(msg, type = "error") {
+    const el = document.getElementById("alert-box");
+    el.textContent = msg;
+    el.className = "alert " + type;
+  }
+  function clearAlert() {
+    const el = document.getElementById("alert-box");
+    el.className = "alert";
+    el.textContent = "";
+  }
+
+  /* ─── Role-based nav config ─── */
+  const NAV_CONFIG = {
+    teacher: [
+      { id: 'points',      hanzi: '星', label: 'Class Points' },
+      { id: 'leaderboard', hanzi: '榜', label: 'Leaderboard' },
+      { id: 'homework',    hanzi: '作', label: 'Homework' },
+      { id: 'grades',      hanzi: '績', label: 'Grades' },
+      { id: 'lessons',     hanzi: '書', label: 'Lesson Library' },
+      { id: 'messages',    hanzi: '信', label: 'Messages' },
+      { id: 'wordbank',    hanzi: '詞', label: 'Word Bank' },
+      { id: 'settings',    hanzi: '設', label: 'Settings' },
+      { id: 'pricing',     hanzi: '價', label: 'Plans & Pricing' },
+    ],
+    student: [
+      { id: 'points',      hanzi: '星', label: 'Class Points' },
+      { id: 'leaderboard', hanzi: '榜', label: 'Leaderboard' },
+      { id: 'homework',    hanzi: '作', label: 'Homework' },
+      { id: 'grades',      hanzi: '績', label: 'Grades' },
+    ],
+    parent: [
+      { id: 'messages',    hanzi: '信', label: 'Messages' },
+      { id: 'grades',      hanzi: '績', label: 'Grades' },
+    ],
+  };
+
+  const ROLE_HANZI = { teacher: '師', student: '生', parent: '親' };
+
+  /* ─── Sample data ─── */
+  const STUDENTS = [
+    { name: '陈明', en: 'Chen Ming',   pts: 142, week: 18 },
+    { name: '李雨',  en: 'Li Yu',       pts: 138, week: 22 },
+    { name: '王芳',  en: 'Wang Fang',   pts: 127, week: 15 },
+    { name: '赵阳',  en: 'Zhao Yang',   pts: 119, week: 10 },
+    { name: '林欣',  en: 'Lin Xin',     pts: 115, week: 20 },
+    { name: '黄伟',  en: 'Huang Wei',   pts: 108, week: 8  },
+    { name: '吴丽',  en: 'Wu Li',       pts:  99, week: 12 },
+    { name: '刘强',  en: 'Liu Qiang',   pts:  87, week: 9  },
+  ];
+
+  const HOMEWORK = [
+    { char: '一', title: 'Unit 3 Vocabulary Quiz', due: 'Due Jun 20', status: 'due' },
+    { char: '二', title: 'Write Characters: 水木火土', due: 'Due Jun 22', status: 'due' },
+    { char: '三', title: 'Pinyin Worksheet B', due: 'Submitted', status: 'graded' },
+    { char: '四', title: 'Tone Practice Recording', due: 'Overdue Jun 14', status: 'overdue' },
+    { char: '五', title: 'Read "小猫" Passage', due: 'Submitted', status: 'graded' },
+  ];
+
+  const GRADES = [
+    { assignment: 'Pinyin Worksheet B',  unit: 'Unit 2', date: 'Jun 12', grade: 'A', score: '96/100' },
+    { assignment: 'Character Stroke Test', unit: 'Unit 2', date: 'Jun 8',  grade: 'B', score: '82/100' },
+    { assignment: 'Read "小猫" Passage',   unit: 'Unit 1', date: 'Jun 3',  grade: 'A', score: '91/100' },
+    { assignment: 'Tone Practice Recording', unit: 'Unit 1', date: 'May 29', grade: 'B', score: '78/100' },
+    { assignment: 'Unit 1 Vocab Quiz',    unit: 'Unit 1', date: 'May 22', grade: 'A', score: '100/100' },
+  ];
+
+  const LESSONS = [
+    { unit: 'Unit 1', title: '你好 · Greetings', chips: ['Vocab list', 'Worksheet', 'Audio'] },
+    { unit: 'Unit 2', title: '数字 · Numbers',   chips: ['Vocab list', 'Worksheet'] },
+    { unit: 'Unit 3', title: '家庭 · Family',     chips: ['Vocab list', 'Worksheet', 'Slides'] },
+    { unit: 'Unit 4', title: '颜色 · Colors',     chips: ['Vocab list'] },
+  ];
+
+  const MESSAGES = [
+    { from: 'Ms. Li (Teacher)', preview: 'Chen Ming had a wonderful week — earned 18 points in class participation. Very proud of their progress with tone marks.', date: 'Jun 17', read: false },
+    { from: 'Ms. Li (Teacher)', preview: 'Reminder: Unit 3 vocabulary quiz is this Friday, June 20. Please review pages 24–28 in the workbook.', date: 'Jun 14', read: true },
+    { from: 'Ms. Li (Teacher)', preview: 'The Tone Practice Recording has not yet been submitted. Please ask your child to complete it before June 14.', date: 'Jun 10', read: true },
+  ];
+
+  let currentRole = 'teacher';
+
+  function enterDashboard(user, displayName, role) {
+    const name = displayName || user?.email?.split("@")[0] || "Friend";
+    currentRole = role || 'teacher';
+    document.getElementById("dash-user-label").textContent = name;
+    document.getElementById("dash-role-badge").textContent = ROLE_HANZI[currentRole] || '';
+    buildNav(currentRole);
+    showPage("page-dashboard");
+  }
+
+  function buildNav(role) {
+    const items = NAV_CONFIG[role] || NAV_CONFIG.teacher;
+    const sidebar = document.getElementById('sidebar');
+    sidebar.innerHTML = '';
+    items.forEach((item, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'nav-item' + (i === 0 ? ' active' : '');
+      btn.dataset.panel = item.id;
+      btn.onclick = () => switchPanel(item.id);
+      btn.innerHTML = `<span class="nav-hanzi">${item.hanzi}</span><span class="nav-label">${item.label}</span>`;
+      sidebar.appendChild(btn);
+    });
+    switchPanel(items[0].id);
+  }
+
+  function switchPanel(id) {
+    document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.panel === id));
+    const panel = document.getElementById('panel-' + id);
+    if (panel) {
+      panel.classList.add('active');
+      renderPanel(id);
+    }
+  }
+
+  function renderPanel(id) {
+    if (id === 'points')      renderPoints();
+    if (id === 'leaderboard') renderLeaderboard();
+    if (id === 'homework')    renderHomework();
+    if (id === 'grades')      renderGrades();
+    if (id === 'lessons')     renderLessons();
+    if (id === 'messages')    renderMessages();
+    if (id === 'wordbank')   renderWordBank();
+    if (id === 'settings')   renderSettings();
+    /* pricing panel is static — no render needed */
+  }
+
+  function renderPoints() {
+    const sorted = [...STUDENTS].sort((a,b) => b.pts - a.pts);
+    const myIdx  = 0; // for demo: show first student as "me"
+    document.getElementById('stat-total-pts').textContent = sorted[myIdx].pts;
+    document.getElementById('stat-rank').textContent      = '#' + (myIdx + 1);
+    document.getElementById('stat-this-week').textContent = sorted[myIdx].week;
+
+    const awardPanel = document.getElementById('teacher-award-panel');
+    awardPanel.style.display = (currentRole === 'teacher') ? 'block' : 'none';
+
+    if (currentRole === 'teacher') {
+      const grid = document.getElementById('students-grid');
+      grid.innerHTML = STUDENTS.map(s => `
+        <div class="student-tile">
+          <div class="student-avatar">${s.name[0]}</div>
+          <div class="student-name">${s.name}</div>
+          <div class="student-pts">${s.pts}</div>
+          <div class="student-pts-label">points</div>
+          <button class="btn-award" onclick="awardPoint('${s.name}')">＋ Award</button>
+        </div>`).join('');
+    }
+  }
+
+  function awardPoint(name) {
+    const s = STUDENTS.find(x => x.name === name);
+    if (s) { s.pts++; s.week++; renderPoints(); renderLeaderboard(); }
+  }
+
+  function renderLeaderboard() {
+    const sorted = [...STUDENTS].sort((a,b) => b.pts - a.pts);
+    const rankClass = ['gold-rank','silver-rank','bronze-rank'];
+    document.getElementById('leaderboard-body').innerHTML = sorted.map((s,i) => `
+      <tr>
+        <td class="rank-num ${rankClass[i]||''}">${i+1}</td>
+        <td>${s.name} <span style="font-size:11px;color:var(--ink-faint);font-style:italic;">${s.en}</span></td>
+        <td class="pts-cell">${s.pts}</td>
+      </tr>`).join('');
+  }
+
+  function renderHomework() {
+    document.getElementById('hw-list').innerHTML = HOMEWORK.map(h => `
+      <div class="hw-item">
+        <div class="hw-char">${h.char}</div>
+        <div class="hw-body">
+          <div class="hw-title">${h.title}</div>
+          <div class="hw-meta">${h.due}</div>
+        </div>
+        <span class="hw-badge ${h.status}">${h.status === 'due' ? '待交' : h.status === 'graded' ? '已批' : '逾期'}</span>
+      </div>`).join('');
+  }
+
+  function renderGrades() {
+    const isTeacher = currentRole === 'teacher';
+    document.getElementById('teacher-student-select').style.display = isTeacher ? 'block' : 'none';
+    if (isTeacher) {
+      const picker = document.getElementById('grade-student-picker');
+      if (!picker.options.length) {
+        STUDENTS.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.name; opt.textContent = `${s.name} (${s.en})`;
+          picker.appendChild(opt);
+        });
+      }
+    }
+    renderGradesTable();
+  }
+
+  function renderGradesTable() {
+    const scores = GRADES.map(g => parseInt(g.score));
+    const avg    = Math.round(scores.reduce((a,b) => a+b, 0) / scores.length);
+    const high   = Math.max(...scores);
+    document.getElementById('grade-avg').textContent     = avg + '%';
+    document.getElementById('grade-highest').textContent = high + '%';
+    document.getElementById('grade-count').textContent   = GRADES.length;
+    document.getElementById('grades-body').innerHTML     = GRADES.map(g => `
+      <tr>
+        <td>${g.assignment}</td>
+        <td style="font-size:11px;color:var(--ink-faint);">${g.unit}</td>
+        <td style="font-size:11px;color:var(--ink-faint);">${g.date}</td>
+        <td><span class="grade-pill grade-${g.grade}">${g.grade}</span></td>
+        <td style="font-family:'Noto Serif SC',serif;">${g.score}</td>
+      </tr>`).join('');
+  }
+
+  function renderLessons() {
+    document.getElementById('lesson-grid').innerHTML = LESSONS.map(l => `
+      <div class="lesson-card">
+        <div class="lesson-unit">${l.unit}</div>
+        <div class="lesson-title">${l.title}</div>
+        <div class="lesson-chips">${l.chips.map(c => `<span class="lesson-chip">${c}</span>`).join('')}</div>
+      </div>`).join('');
+  }
+
+  function renderMessages() {
+    document.getElementById('msg-list').innerHTML = MESSAGES.map(m => `
+      <div class="msg-item">
+        <div class="msg-dot ${m.read ? 'read' : ''}"></div>
+        <div class="msg-body">
+          <div class="msg-from">${m.from}</div>
+          <div class="msg-preview">${m.preview}</div>
+          <div class="msg-date">${m.date}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    clearAlert();
+    const btn = document.getElementById("btn-login");
+    btn.disabled = true; btn.textContent = "…";
+    if (!sb) { showAlert('Auth not configured — use Skip sign-in for now.'); btn.disabled=false; btn.innerHTML="进入 &nbsp; Enter"; return; }
+    const { data, error } = await sb.auth.signInWithPassword({
+      email: document.getElementById("login-email").value,
+      password: document.getElementById("login-password").value
+    });
+    btn.disabled = false; btn.innerHTML = "进入 &nbsp; Enter";
+    if (error) return showAlert(error.message);
+    const meta = data.user?.user_metadata || {};
+    enterDashboard(data.user, meta.display_name, meta.role);
+  }
+
+  async function handleSignup(e) {
+    e.preventDefault();
+    clearAlert();
+    const btn = document.getElementById("btn-signup");
+    btn.disabled = true; btn.textContent = "…";
+    if (!sb) { showAlert('Auth not configured — use Skip sign-in for now.'); btn.disabled=false; btn.innerHTML="創建 &nbsp; Create Account"; return; }
+    const name = document.getElementById("signup-name").value.trim();
+    const role = document.querySelector('input[name="role"]:checked').value;
+    const { data, error } = await sb.auth.signUp({
+      email: document.getElementById("signup-email").value,
+      password: document.getElementById("signup-password").value,
+      options: { data: { display_name: name, role } }
+    });
+    btn.disabled = false; btn.innerHTML = "創建 &nbsp; Create Account";
+    if (error) return showAlert(error.message);
+    if (data.user && !data.session) {
+      showAlert("Please check your email to confirm your account.", "success");
+      switchTab("login");
+    } else if (data.session) {
+      enterDashboard(data.user, name, role);
+    }
+  }
+
+  async function handleSignOut() {
+    if (sb) await sb.auth.signOut();
+    showPage("page-auth");
+    switchTab("login");
+  }
+
+  let stopLoading = null;
+
+  function skipSignIn() {
+    if (stopLoading) {
+      stopLoading(() => enterDashboard(null, "Test User", "teacher"));
+    } else {
+      enterDashboard(null, "Test User", "teacher");
+    }
+  }
+
+  /* session check now handled inside the loading screen after initSupabase() */
+
+  /* ─── Lantern loading screen ─── */
+  (function() {
+    const canvas = document.getElementById('lantern-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H, lanterns = [], raf;
+
+    function resize() {
+      W = canvas.width  = canvas.offsetWidth;
+      H = canvas.height = canvas.offsetHeight;
+    }
+
+    function makeLantern() {
+      const scale = 0.55 + Math.random() * 0.7;
+      return {
+        x: -80 + Math.random() * W * 0.25,
+        y: H + 60 + Math.random() * 160,
+        scale,
+        speed: 0.45 + Math.random() * 0.55,
+        drift: (Math.random() - 0.5) * 0.18,
+        sway: Math.random() * Math.PI * 2,
+        swaySpeed: 0.012 + Math.random() * 0.018,
+        glowPhase: Math.random() * Math.PI * 2,
+        glowSpeed: 0.025 + Math.random() * 0.02,
+        hue: Math.random() < 0.72 ? 'vermilion' : 'gold',
+        opacity: 0.6 + Math.random() * 0.4,
+      };
+    }
+
+    function drawLantern(c, l) {
+      const { x, y, scale, sway, glowPhase, hue, opacity } = l;
+      const sw = Math.sin(sway) * 5 * scale;
+      c.save();
+      c.translate(x + sw, y);
+      c.scale(scale, scale);
+      c.globalAlpha = opacity;
+
+      const isRed = hue === 'vermilion';
+      const bodyColor  = isRed ? '#C0392B' : '#B5882A';
+      const bodyDark   = isRed ? '#7B1F14' : '#7A5500';
+      const rimColor   = isRed ? '#E8604A' : '#D4A030';
+      const glowColor  = isRed ? 'rgba(220,80,50,' : 'rgba(210,160,40,';
+      const glowPulse  = 0.18 + Math.sin(glowPhase) * 0.10;
+
+      /* outer glow ring */
+      c.beginPath();
+      c.arc(0, 0, 46, 0, Math.PI * 2);
+      c.fillStyle = glowColor + glowPulse + ')';
+      c.fill();
+
+      /* lantern body — oval */
+      c.beginPath();
+      c.ellipse(0, 0, 22, 34, 0, 0, Math.PI * 2);
+      c.fillStyle = bodyColor;
+      c.fill();
+
+      /* vertical ribs */
+      for (let i = -1; i <= 1; i++) {
+        c.beginPath();
+        c.ellipse(i * 9, 0, 3, 33, 0, 0, Math.PI * 2);
+        c.fillStyle = bodyDark;
+        c.globalAlpha = opacity * 0.35;
+        c.fill();
+        c.globalAlpha = opacity;
+      }
+
+      /* top cap */
+      c.beginPath();
+      c.ellipse(0, -34, 10, 5, 0, 0, Math.PI * 2);
+      c.fillStyle = rimColor;
+      c.fill();
+
+      /* bottom cap */
+      c.beginPath();
+      c.ellipse(0, 34, 10, 5, 0, 0, Math.PI * 2);
+      c.fillStyle = rimColor;
+      c.fill();
+
+      /* hanging wire up */
+      c.beginPath();
+      c.moveTo(0, -39);
+      c.lineTo(0, -52);
+      c.strokeStyle = rimColor;
+      c.lineWidth = 1.2;
+      c.stroke();
+
+      /* tassel threads down */
+      const tColors = isRed
+        ? ['#E8604A','#C0392B','#FFD080','#E8604A','#C0392B']
+        : ['#D4A030','#B5882A','#FF8040','#D4A030','#B5882A'];
+      for (let i = 0; i < 5; i++) {
+        const tx = -8 + i * 4;
+        const len = 18 + Math.sin(glowPhase + i) * 4;
+        c.beginPath();
+        c.moveTo(tx, 39);
+        c.lineTo(tx + Math.sin(sway * 0.4 + i) * 3, 39 + len);
+        c.strokeStyle = tColors[i];
+        c.lineWidth = 1;
+        c.globalAlpha = opacity * 0.85;
+        c.stroke();
+        c.globalAlpha = opacity;
+      }
+
+      /* inner warm glow highlight */
+      c.beginPath();
+      c.ellipse(-5, -8, 7, 12, -0.3, 0, Math.PI * 2);
+      c.fillStyle = isRed ? 'rgba(255,200,120,0.22)' : 'rgba(255,240,160,0.28)';
+      c.fill();
+
+      c.restore();
+    }
+
+    function tick() {
+      ctx.clearRect(0, 0, W, H);
+
+      /* drift lanterns diagonally: up and slightly right */
+      lanterns.forEach(l => {
+        l.y  -= l.speed;
+        l.x  += l.speed * 0.55 + l.drift;
+        l.sway      += l.swaySpeed;
+        l.glowPhase += l.glowSpeed;
+        drawLantern(ctx, l);
+      });
+
+      /* remove off-screen (top-right) and replenish */
+      lanterns = lanterns.filter(l => l.y > -120 && l.x < W + 120);
+      while (lanterns.length < 14) {
+        lanterns.push(makeLantern());
+      }
+
+      raf = requestAnimationFrame(tick);
+    }
+
+    function doFinish(cb) {
+      cancelAnimationFrame(raf);
+      cb();
+    }
+
+    function startLoading() {
+      resize();
+      window.addEventListener('resize', resize);
+
+      for (let i = 0; i < 14; i++) {
+        const l = makeLantern();
+        l.x = Math.random() * W;
+        l.y = H * 0.2 + Math.random() * H * 0.8;
+        lanterns.push(l);
+      }
+
+      tick();
+
+      setTimeout(() => {
+        document.getElementById('loading-text').style.opacity = '1';
+      }, 600);
+
+      /* expose stopLoading so skipSignIn can trigger it */
+      stopLoading = function(cb) {
+        stopLoading = null;
+        clearTimeout(autoTimer);
+        doFinish(cb);
+      };
+
+      const autoTimer = setTimeout(() => {
+        if (!stopLoading) return;
+        stopLoading = null;
+        (async () => {
+          cancelAnimationFrame(raf);
+          await initSupabase();
+          if (sb) {
+            const { data } = await sb.auth.getSession();
+            if (data.session) {
+              const meta = data.session.user?.user_metadata || {};
+              enterDashboard(data.session.user, meta.display_name, meta.role);
+              return;
+            }
+          }
+          showPage('page-auth');
+        })();
+      }, 2600);
+    }
+
+    startLoading();
+  })();
+
+  /* ─── Settings ─── */
+  function callAPI(body) {
+    return fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(r => r.json());
+  }
+
+  async function renderSettings() {
+    // Check AI endpoint
+    const aiDot = document.getElementById('groq-key-dot');
+    const aiLbl = document.getElementById('groq-key-status-label');
+    try {
+      const probe = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1, messages:[{role:'user',content:'hi'}] })
+      }).then(r => r.json());
+      if (probe.error && probe.error.includes && probe.error.includes('ANTHROPIC_KEY')) {
+        aiDot.classList.remove('set'); aiLbl.textContent = 'ANTHROPIC_KEY not set on server';
+      } else {
+        aiDot.classList.add('set'); aiLbl.textContent = 'Connected · claude-sonnet-4-6';
+      }
+    } catch(e) {
+      aiDot.classList.remove('set'); aiLbl.textContent = 'Could not reach server';
+    }
+
+    // Check Supabase
+    const sbDot = document.getElementById('sb-status-dot');
+    const sbLbl = document.getElementById('sb-status-label');
+    try {
+      const cfg = await fetch('/api/config').then(r => r.json());
+      if (cfg.supabaseUrl && cfg.supabaseAnon) {
+        sbDot.classList.add('set'); sbLbl.textContent = 'Connected · ' + cfg.supabaseUrl.replace('https://','').split('.')[0];
+      } else {
+        sbDot.classList.remove('set'); sbLbl.textContent = 'SUPABASE_URL / SUPABASE_ANON not set';
+      }
+    } catch(e) {
+      sbDot.classList.remove('set'); sbLbl.textContent = 'Could not reach server';
+    }
+
+    // Supabase fields (still allow updating from UI)
+    const sbUrl  = localStorage.getItem('hyk_sb_url')  || '';
+    const sbAnon = localStorage.getItem('hyk_sb_anon') || '';
+    if (document.getElementById('sb-url-input')) {
+      document.getElementById('sb-url-input').value  = sbUrl;
+      document.getElementById('sb-anon-input').value = '';
+    }
+  }
+
+  function saveGroqKey() {} // no-op — keys are server-side
+  function clearGroqKey() {} // no-op
+
+  function saveSupabaseKeys() {
+    const url  = document.getElementById('sb-url-input').value.trim();
+    const anon = document.getElementById('sb-anon-input').value.trim();
+    const msg  = document.getElementById('sb-key-msg');
+    if (!url) { msg.textContent = 'Please enter a project URL.'; msg.className = 'settings-status err'; return; }
+    if (url)  localStorage.setItem('hyk_sb_url', url);
+    if (anon) localStorage.setItem('hyk_sb_anon', anon);
+    msg.textContent = 'Saved. Reload the page for changes to take effect.';
+    msg.className   = 'settings-status ok';
+  }
+
+  function clearSupabaseKeys() {
+    localStorage.removeItem('hyk_sb_url');
+    localStorage.removeItem('hyk_sb_anon');
+    document.getElementById('sb-url-input').value  = '';
+    document.getElementById('sb-anon-input').value = '';
+    const msg = document.getElementById('sb-key-msg');
+    msg.textContent = 'Keys cleared.'; msg.className = 'settings-status';
+  }
+
+  /* ─────────────────────────────────────────────
+     GENERATION SYSTEM
+  ───────────────────────────────────────────── */
+  let genType = null;
+
+  const GEN_CONFIG = {
+    worksheet:  { hanzi:'卷', title:'Generate Worksheet', subtitle:'Configure question types and counts', sections:['mcq','fitb','passage','sentence'] },
+    test:       { hanzi:'試', title:'Generate Test',      subtitle:'Same as worksheet but includes a grade box', sections:['mcq','fitb','passage','sentence'] },
+    flashcards: { hanzi:'習', title:'Generate Flashcards', subtitle:'Interactive cards · also downloadable as Word doc', sections:[] },
+  };
+
+  const SECTION_DEFS = {
+    mcq:      { label:'Multiple Choice (MCQ)', hint:'4 options per question · up to 5', max:5 },
+    fitb:     { label:'Fill in the Blank',     hint:'students write the missing word · up to 5', max:5 },
+    passage:  { label:'Read a Passage',        hint:'one passage from vocab · up to 3 comprehension questions', max:3 },
+    sentence: { label:'Create a Sentence',     hint:'students write a sentence using the word · up to 5', max:5 },
+  };
+
+  let genValues = {};
+
+  function openGenModal(type) {
+    const set = wordSets[activeSetIdx];
+    if (!set || !set.words.length) { alert('Add some words to this set before generating.'); return; }
+    /* AI routed through /api/ai on the server — no client key needed */
+    genType = type;
+    const cfg = GEN_CONFIG[type];
+    document.getElementById('gen-modal-hanzi').textContent    = cfg.hanzi;
+    document.getElementById('gen-modal-title').textContent    = cfg.title;
+    document.getElementById('gen-modal-subtitle').textContent = cfg.subtitle;
+    document.getElementById('gen-status').textContent = '';
+    document.getElementById('gen-status').className  = 'gen-status';
+    document.getElementById('btn-gen-go').disabled   = false;
+
+    const body = document.getElementById('gen-modal-body');
+    if (type === 'flashcards') {
+      body.innerHTML = `
+        <div class="gen-note">Flashcards will be built directly from your word set — no API call needed. Flip through them on-screen or download as a Word deck.</div>
+        <div class="gen-note"><strong>${set.words.length}</strong> card${set.words.length!==1?'s':''} from "<em>${set.name}</em>".</div>`;
+    } else {
+      genValues = {};
+      cfg.sections.forEach(k => { genValues[k] = { enabled: k==='mcq', count: SECTION_DEFS[k].max }; });
+      body.innerHTML = `
+        <div class="gen-section">
+          <div class="gen-section-title">Question Types</div>
+          ${cfg.sections.map(k => {
+            const d = SECTION_DEFS[k]; const v = genValues[k];
+            return `<div class="gen-row" id="gen-row-${k}">
+              <div class="gen-row-label"><strong>${d.label}</strong><span>${d.hint}</span></div>
+              <div class="gen-toggle">
+                <input type="checkbox" class="gen-checkbox" id="chk-${k}" ${v.enabled?'checked':''}
+                  onchange="toggleSection('${k}',this.checked)" />
+              </div>
+              <div class="gen-stepper" id="step-${k}" style="${v.enabled?'':'opacity:0.3;pointer-events:none;'}">
+                <button class="gen-stepper-btn" onclick="stepCount('${k}',-1)">−</button>
+                <span class="gen-stepper-val" id="val-${k}">${v.count}</span>
+                <button class="gen-stepper-btn" onclick="stepCount('${k}',1)">＋</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="gen-note">Words: <strong>${set.words.length}</strong> from "<em>${set.name}</em>"</div>`;
+    }
+    document.getElementById('gen-overlay').classList.add('open');
+  }
+
+  function closeGenModal() { document.getElementById('gen-overlay').classList.remove('open'); }
+
+  function toggleSection(key, on) {
+    genValues[key].enabled = on;
+    const step = document.getElementById('step-'+key);
+    step.style.opacity = on?'1':'0.3';
+    step.style.pointerEvents = on?'':'none';
+  }
+
+  function stepCount(key, delta) {
+    const d = SECTION_DEFS[key]; const v = genValues[key];
+    v.count = Math.max(1, Math.min(d.max, v.count+delta));
+    document.getElementById('val-'+key).textContent = v.count;
+  }
+
+  async function runGenerate() {
+    const btn = document.getElementById('btn-gen-go');
+    const status = document.getElementById('gen-status');
+    if (genType === 'flashcards') { closeGenModal(); showFlashcards(); return; }
+
+    const enabled = Object.entries(genValues).filter(([,v]) => v.enabled);
+    if (!enabled.length) { status.textContent='Enable at least one question type.'; status.className='gen-status err'; return; }
+
+    const set = wordSets[activeSetIdx];
+    btn.disabled = true;
+    status.className = 'gen-status';
+    status.textContent = '生成中 · Generating…';
+
+    const sections = enabled.map(([k,v]) => {
+      if (k==='mcq')      return `- ${v.count} multiple-choice questions (4 options A/B/C/D each)`;
+      if (k==='fitb')     return `- ${v.count} fill-in-the-blank sentences (use ___ for blank)`;
+      if (k==='passage')  return `- 1 short reading passage (~80 words) using the vocabulary, followed by ${v.count} comprehension questions`;
+      if (k==='sentence') return `- ${v.count} "create a sentence" prompts (give the Chinese word, student writes sentence)`;
+      return '';
+    }).join('\n');
+
+    const wordList = set.words.map(w=>`${w.chinese}(${w.pinyin})=${w.english}`).join(', ');
+    const isTest = genType==='test';
+
+    const prompt = `You are a Chinese language teacher creating a ${isTest?'test':'worksheet'} for K-5 elementary students.
+Vocabulary set: "${set.name}"
+Words: ${wordList}
+
+Generate these sections:
+${sections}
+
+Respond ONLY with valid JSON, no markdown fences:
+{
+  "title": "${set.name} ${isTest?'Test':'Worksheet'}",
+  "sections": [
+    {
+      "type": "mcq"|"fitb"|"passage"|"sentence",
+      "title": "Section title",
+      "passage": "...(passage type only)",
+      "questions": [{ "text": "...", "choices": ["A...","B...","C...","D..."], "answer": "..." }]
+    }
+  ]
+}`;
+
+    try {
+      const data = await callAPI({ model:'claude-sonnet-4-6', max_tokens:2000, messages:[{role:'user',content:prompt}] });
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      const text = data.content?.find(b=>b.type==='text')?.text||'';
+      const doc  = JSON.parse(text.replace(/```json|```/g,'').trim());
+      closeGenModal();
+      renderDocOutput(doc, isTest);
+    } catch(e) {
+      status.textContent = 'Generation failed: '+(e.message||'check Settings → API Configuration');
+      status.className = 'gen-status err';
+      btn.disabled = false;
+    }
+  }
+
+  /* ── Render worksheet / test ── */
+  function renderDocOutput(doc, isTest) {
+    const set   = wordSets[activeSetIdx];
+    const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    const ROMAN = ['I','II','III','IV','V','VI'];
+    let h = `<div class="ws-doc">
+      <div class="ws-doc-head">
+        ${isTest?'<div class="ws-grade-box"><div class="ws-grade-label">成績 GRADE</div><div class="ws-grade-line"></div></div>':''}
+        <div class="ws-doc-title">${doc.title||set.name}</div>
+        <div class="ws-doc-meta">${today}</div>
+      </div>
+      <div class="ws-name-row">
+        <div class="ws-name-field"><div class="ws-name-label">姓名 Name</div><div class="ws-name-line"></div></div>
+        <div class="ws-name-field"><div class="ws-name-label">日期 Date</div><div class="ws-name-line"></div></div>
+        ${isTest?'<div class="ws-name-field"><div class="ws-name-label">班級 Class</div><div class="ws-name-line"></div></div>':''}
+      </div>`;
+
+    (doc.sections||[]).forEach((sec,si) => {
+      h += `<div class="ws-section"><div class="ws-section-head"><div class="ws-section-num">${ROMAN[si]||si+1}</div><div class="ws-section-title">${sec.title}</div></div>`;
+      if (sec.type==='passage'&&sec.passage) h += `<div class="ws-passage">${sec.passage}</div>`;
+      (sec.questions||[]).forEach((q,qi) => {
+        h += `<div class="ws-q">`;
+        if (sec.type==='mcq') {
+          h += `<div class="ws-q-text">${qi+1}. ${q.text}</div><ul class="ws-choices">`;
+          (q.choices||[]).forEach((c,ci)=>{ h+=`<li data-letter="${['A','B','C','D'][ci]}">${c.replace(/^[A-D]\.\s*/,'')}</li>`; });
+          h += `</ul>`;
+        } else if (sec.type==='fitb') {
+          h += `<div class="ws-q-text">${qi+1}. ${q.text.replace(/___+/g,'<span class="ws-q-blank"></span>')}</div>`;
+        } else if (sec.type==='passage') {
+          h += `<div class="ws-q-text">${qi+1}. ${q.text}</div><div class="ws-answer-line"></div><div class="ws-answer-line"></div>`;
+        } else if (sec.type==='sentence') {
+          h += `<div class="ws-q-text">${qi+1}. Use: <strong style="font-family:'Noto Serif SC',serif;color:var(--vermilion);">${q.text}</strong></div><div class="ws-answer-line"></div><div class="ws-answer-line"></div>`;
+        }
+        h += `</div>`;
+      });
+      h += `</div>`;
+    });
+    h += `</div>`;
+    window._lastDocHTML = h;
+
+    document.getElementById('out-title').textContent    = isTest?'試卷 Test':'工作紙 Worksheet';
+    document.getElementById('out-sub').textContent      = set.name;
+    document.getElementById('btn-out-print').style.display = '';
+    document.getElementById('out-body').innerHTML       = h;
+    document.getElementById('out-overlay').classList.add('open');
+  }
+
+  /* ── Flashcard viewer ── */
+  let fcCards=[], fcIdx=0, fcFlipped=false;
+
+  function showFlashcards() {
+    const set = wordSets[activeSetIdx];
+    fcCards = [...set.words]; fcIdx=0; fcFlipped=false;
+    document.getElementById('out-title').textContent    = '學習卡 Flashcards';
+    document.getElementById('out-sub').textContent      = set.name+' · '+fcCards.length+' cards';
+    document.getElementById('btn-out-print').style.display = 'none';
+    renderFCView();
+    document.getElementById('out-overlay').classList.add('open');
+  }
+
+  function renderFCView() {
+    const card = fcCards[fcIdx];
+    document.getElementById('out-body').innerHTML = `
+      <div class="fc-viewer">
+        <div class="fc-progress">${fcIdx+1} / ${fcCards.length}</div>
+        <div class="fc-card-wrap" onclick="flipCard()">
+          <div class="fc-card-inner ${fcFlipped?'flipped':''}" id="fc-inner">
+            <div class="fc-face fc-front">
+              <div class="fc-chinese">${card.chinese||'?'}</div>
+              <div class="fc-hint">tap to reveal</div>
+            </div>
+            <div class="fc-face fc-back">
+              <div class="fc-pinyin">${card.pinyin||''}</div>
+              <div class="fc-english">${card.english||''}</div>
+            </div>
+          </div>
+        </div>
+        <div class="fc-controls">
+          <button class="btn-fc" onclick="fcNav(-1)" ${fcIdx===0?'disabled':''}>← 上一張</button>
+          <button class="btn-fc" onclick="shuffleCards()">洗牌 Shuffle</button>
+          <button class="btn-fc" onclick="fcNav(1)" ${fcIdx===fcCards.length-1?'disabled':''}>下一張 →</button>
+        </div>
+        <button class="btn-fc-dl" onclick="downloadFlashcardsDocx()">⬇ 下載 Word Deck</button>
+      </div>`;
+  }
+
+  function flipCard() {
+    fcFlipped = !fcFlipped;
+    const inner = document.getElementById('fc-inner');
+    if (inner) inner.classList.toggle('flipped', fcFlipped);
+  }
+
+  function fcNav(dir) {
+    fcIdx = Math.max(0, Math.min(fcCards.length-1, fcIdx+dir));
+    fcFlipped = false; renderFCView();
+  }
+
+  function shuffleCards() {
+    for (let i=fcCards.length-1;i>0;i--) {
+      const j=Math.floor(Math.random()*(i+1));
+      [fcCards[i],fcCards[j]]=[fcCards[j],fcCards[i]];
+    }
+    fcIdx=0; fcFlipped=false; renderFCView();
+  }
+
+  function closeOutput() { document.getElementById('out-overlay').classList.remove('open'); }
+
+  function printOutput() {
+    const w = window.open('','_blank');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400&family=Noto+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+body{font-family:"Noto Serif",serif;color:#1C1814;padding:2cm;max-width:800px;margin:0 auto;}
+.ws-doc-title{font-family:"Noto Serif SC",serif;font-size:20pt;color:#C0392B;letter-spacing:4px;text-align:center;}
+.ws-doc-meta{text-align:center;font-size:9pt;color:#8A7E72;font-style:italic;margin-top:4px;}
+.ws-doc-head{text-align:center;margin-bottom:1.5cm;padding-bottom:.5cm;border-bottom:1px solid #E8DFD0;}
+.ws-grade-box{float:right;border:1px solid #aaa;width:2.5cm;height:1.5cm;text-align:center;}
+.ws-grade-label{font-family:"Noto Serif SC",serif;font-size:7pt;color:#8A7E72;letter-spacing:2px;margin-top:4px;}
+.ws-grade-line{width:70%;border-bottom:1px solid #1C1814;margin:8px auto 0;}
+.ws-name-row{display:flex;gap:1.5cm;margin-bottom:1.2cm;clear:both;}
+.ws-name-field{flex:1;}
+.ws-name-label{font-family:"Noto Serif SC",serif;font-size:7pt;color:#8A7E72;letter-spacing:1.5px;}
+.ws-name-line{border-bottom:1px solid #8A7E72;height:.7cm;}
+.ws-section{margin-bottom:1.2cm;}
+.ws-section-head{display:flex;align-items:center;gap:.5cm;border-bottom:1px solid #E8DFD0;padding-bottom:4px;margin-bottom:.5cm;}
+.ws-section-num{font-family:"Noto Serif SC",serif;font-size:16pt;color:#E8DFD0;}
+.ws-section-title{font-family:"Noto Serif SC",serif;font-size:11pt;}
+.ws-q{margin-bottom:.5cm;}
+.ws-q-text{font-size:10pt;line-height:1.8;}
+.ws-q-blank{display:inline-block;min-width:3cm;border-bottom:1px solid #1C1814;}
+.ws-choices{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:2px 1cm;margin-top:4px;padding:0;}
+.ws-choices li{font-size:9pt;}
+.ws-choices li::before{content:attr(data-letter)". ";color:#8A7E72;}
+.ws-answer-line{border-bottom:1px solid #E8DFD0;height:.7cm;margin:4px 0;}
+.ws-passage{background:#FBF8F3;border:1px solid #E8DFD0;padding:.4cm .6cm;font-size:10pt;line-height:2;margin-bottom:.5cm;font-family:"Noto Serif SC",serif;}
+@media print{body{padding:1.5cm;}@page{margin:1.5cm;}}
+</style></head><body>${window._lastDocHTML||''}
+<!-- ── Paste & Detect Modal ── -->
+<div class="paste-overlay" id="paste-overlay">
+  <div class="paste-modal">
+    <div class="paste-modal-head">
+      <div class="paste-modal-hanzi">貼</div>
+      <div>
+        <div class="paste-modal-title">Paste &amp; Detect</div>
+        <div class="paste-modal-sub">Paste text in any format — Claude extracts the vocabulary automatically</div>
+      </div>
+    </div>
+    <div class="paste-modal-body">
+      <div class="paste-examples">
+        Works with any format, for example:<br>
+        家 jiā family &nbsp;·&nbsp; 学校 xuéxiào school<br>
+        1. 水 (shuǐ) — water &nbsp;·&nbsp; 火 (huǒ) — fire<br>
+        家=family, 学校=school &nbsp;·&nbsp; or just Chinese characters alone
+      </div>
+      <textarea class="paste-textarea" id="paste-input"
+        placeholder="Paste your vocab list here in any format…&#10;&#10;e.g.&#10;家 jiā family&#10;学校 xuéxiào school&#10;水 shuǐ water"></textarea>
+
+      <!-- Preview after detection -->
+      <div class="paste-preview" id="paste-preview">
+        <div class="paste-preview-label">Detected Words — remove any mistakes before adding</div>
+        <table class="paste-table">
+          <thead><tr><th>#</th><th>漢字</th><th>Pinyin</th><th>English</th><th></th></tr></thead>
+          <tbody id="paste-preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="paste-modal-foot">
+      <div class="paste-status" id="paste-status"></div>
+      <button class="btn-paste-cancel" onclick="closePasteModal()">取消 Cancel</button>
+      <button class="btn-paste-detect" id="btn-paste-detect" onclick="runPasteDetect()">識別 Detect</button>
+      <button class="btn-paste-add" id="btn-paste-add" onclick="addDetectedWords()">加入全部 Add All</button>
+    </div>
+  </div>
+</div>
+
+</body></html>`);
+    w.document.close();
+    setTimeout(()=>w.print(),600);
+  }
+
+  /* ── Flashcard DOCX download ── */
+  async function downloadFlashcardsDocx() {
+    const set = wordSets[activeSetIdx];
+    if (!set||!fcCards.length) return;
+    const btn = document.querySelector('.btn-fc-dl');
+    if (btn) { btn.textContent='生成中…'; btn.disabled=true; }
+    try {
+      if (!window.docx) {
+        await new Promise((res,rej) => {
+          const s=document.createElement('script');
+          s.src='https://cdnjs.cloudflare.com/ajax/libs/docx/9.0.2/docx.umd.min.js';
+          s.onload=res; s.onerror=rej; document.head.appendChild(s);
+        });
+      }
+      const { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle } = window.docx;
+      const children = [];
+
+      children.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: {before:1440,after:240},
+        children:[new TextRun({text:set.name,font:'Arial',size:40,bold:true,color:'C0392B'})]
+      }));
+      children.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: {before:0,after:240},
+        children:[new TextRun({text:'Flashcard Deck  ·  學習卡',font:'Arial',size:22,color:'8A7E72',italics:true})]
+      }));
+      children.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children:[new TextRun({text:fcCards.length+' cards',font:'Arial',size:18,color:'8A7E72'})]
+      }));
+
+      fcCards.forEach((card,i) => {
+        if (i>0) children.push(new Paragraph({children:[new TextRun({text:'',break:1})]}));
+        children.push(new Paragraph({
+          spacing:{before:480,after:120},
+          children:[new TextRun({text:`Card ${i+1} of ${fcCards.length}`,font:'Arial',size:18,color:'B5882A',italics:true})]
+        }));
+        children.push(new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing:{before:360,after:180},
+          border:{top:{style:BorderStyle.SINGLE,size:4,color:'E8DFD0',space:1},bottom:{style:BorderStyle.SINGLE,size:4,color:'E8DFD0',space:1},left:{style:BorderStyle.SINGLE,size:4,color:'E8DFD0',space:1},right:{style:BorderStyle.SINGLE,size:4,color:'E8DFD0',space:1}},
+          children:[new TextRun({text:card.chinese||'',font:'Arial',size:72,color:'C0392B',bold:true})]
+        }));
+        if (card.pinyin) children.push(new Paragraph({
+          alignment:AlignmentType.CENTER, spacing:{before:120,after:60},
+          children:[new TextRun({text:card.pinyin,font:'Arial',size:32,color:'8A7E72',italics:true})]
+        }));
+        children.push(new Paragraph({
+          alignment:AlignmentType.CENTER, spacing:{before:60,after:480},
+          children:[new TextRun({text:card.english||'',font:'Arial',size:36,color:'1C1814'})]
+        }));
+      });
+
+      const doc = new Document({
+        sections:[{
+          properties:{page:{size:{width:12240,height:15840},margin:{top:1440,right:1440,bottom:1440,left:1440}}},
+          children
+        }]
+      });
+      const blob = await Packer.toBlob(doc);
+      const url  = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url; a.download=(set.name||'flashcards').replace(/[^a-z0-9\u4e00-\u9fff]/gi,'_')+'_flashcards.docx';
+      a.click(); URL.revokeObjectURL(url);
+    } catch(e) {
+      alert('Download failed: '+e.message);
+    } finally {
+      if (btn) { btn.textContent='⬇ 下載 Word Deck'; btn.disabled=false; }
+    }
+  }
+
+  /* ─── Word Bank ─── */
+  let wordSets = [];
+  let activeSetIdx = null;
+
+  try { wordSets = JSON.parse(localStorage.getItem('hyk_wordsets') || '[]'); } catch(e) { wordSets = []; }
+
+  function saveWordSets() {
+    try { localStorage.setItem('hyk_wordsets', JSON.stringify(wordSets)); } catch(e) {}
+  }
+
+  function renderWordBank() {
+    renderSetList();
+    if (activeSetIdx !== null && wordSets[activeSetIdx]) {
+      openSet(activeSetIdx);
+    } else {
+      document.getElementById('wb-empty').style.display  = '';
+      document.getElementById('wb-editor').style.display = 'none';
+    }
+  }
+
+  function renderSetList() {
+    const SET_CHARS = ['一','二','三','四','五','六','七','八','九','十'];
+    const list = document.getElementById('wb-set-list');
+    if (!list) return;
+    if (!wordSets.length) {
+      list.innerHTML = '<div style="padding:1.25rem;font-size:12px;font-style:italic;color:var(--ink-faint);text-align:center;">No sets yet</div>';
+      return;
+    }
+    list.innerHTML = wordSets.map((s,i) => `
+      <div class="wb-set-item ${activeSetIdx===i?'active':''}" onclick="openSet(${i})">
+        <span class="wb-set-hanzi">${SET_CHARS[i]||'·'}</span>
+        <div class="wb-set-info">
+          <div class="wb-set-name">${s.name||'Untitled Set'}</div>
+          <div class="wb-set-count">${s.words.length} word${s.words.length!==1?'s':''}</div>
+        </div>
+        <button class="wb-set-del" onclick="event.stopPropagation();deleteSet(${i})" title="Delete">×</button>
+      </div>`).join('');
+  }
+
+  function openSet(idx) {
+    activeSetIdx = idx;
+    const set = wordSets[idx];
+    document.getElementById('wb-empty').style.display  = 'none';
+    document.getElementById('wb-editor').style.display = 'flex';
+    document.getElementById('wb-set-title').value = set.name || '';
+    renderWordTable();
+    renderSetList();
+  }
+
+  function saveCurrentSetTitle() {
+    if (activeSetIdx === null) return;
+    wordSets[activeSetIdx].name = document.getElementById('wb-set-title').value.trim();
+    saveWordSets();
+    renderSetList();
+  }
+
+  function renderWordTable() {
+    if (activeSetIdx === null) return;
+    const words = wordSets[activeSetIdx].words;
+    const tbody = document.getElementById('wb-word-tbody');
+    if (!tbody) return;
+    if (!words.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;font-style:italic;color:var(--ink-faint);padding:1.5rem;">No words yet — add one above</td></tr>';
+      return;
+    }
+    tbody.innerHTML = words.map((w,i) => `
+      <tr>
+        <td style="color:var(--ink-faint);font-size:11px;">${i+1}</td>
+        <td class="wb-char-cell">${w.chinese}</td>
+        <td class="wb-pinyin-cell">${w.pinyin}</td>
+        <td>${w.english}</td>
+        <td><button class="wb-del-btn" onclick="deleteWord(${i})">×</button></td>
+      </tr>`).join('');
+  }
+
+  function addWord() {
+    if (activeSetIdx === null) return;
+    const chinese = document.getElementById('wb-in-chinese').value.trim();
+    const pinyin  = document.getElementById('wb-in-pinyin').value.trim();
+    const english = document.getElementById('wb-in-english').value.trim();
+    if (!chinese && !english) return;
+    wordSets[activeSetIdx].words.push({ chinese, pinyin, english });
+    saveWordSets();
+    document.getElementById('wb-in-chinese').value = '';
+    document.getElementById('wb-in-pinyin').value  = '';
+    document.getElementById('wb-in-english').value = '';
+    document.getElementById('wb-in-chinese').focus();
+    renderWordTable();
+    renderSetList();
+  }
+
+  function deleteWord(idx) {
+    if (activeSetIdx === null) return;
+    wordSets[activeSetIdx].words.splice(idx, 1);
+    saveWordSets();
+    renderWordTable();
+    renderSetList();
+  }
+
+  function deleteSet(idx) {
+    if (!confirm('Delete this word set?')) return;
+    wordSets.splice(idx, 1);
+    if (activeSetIdx === idx) activeSetIdx = null;
+    else if (activeSetIdx > idx) activeSetIdx--;
+    saveWordSets();
+    renderWordBank();
+  }
+
+  /* Enter key on word inputs */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const active = document.activeElement;
+      const inputs = ['wb-in-chinese','wb-in-pinyin','wb-in-english'].map(id => document.getElementById(id));
+      if (inputs.includes(active)) addWord();
+    }
+  });
+
+  /* Word Bank Modal */
+  function openNewSetModal() {
+    document.getElementById('wb-modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('wb-modal-name').focus(), 50);
+  }
+  function closeNewSetModal() {
+    document.getElementById('wb-modal-overlay').classList.remove('open');
+    document.getElementById('wb-modal-name').value = '';
+  }
+  function confirmNewSet() {
+    const name = document.getElementById('wb-modal-name').value.trim() || 'New Set';
+    wordSets.push({ name, words: [] });
+    saveWordSets();
+    closeNewSetModal();
+    renderSetList();
+    openSet(wordSets.length - 1);
+  }
+
+
+  /* ─── Paste & Detect ─── */
+  let detectedWords = [];
+
+  function openPasteModal() {
+    if (activeSetIdx === null) { alert('Please select or create a word set first.'); return; }
+    document.getElementById('paste-input').value    = '';
+    document.getElementById('paste-status').textContent = '';
+    document.getElementById('paste-status').className   = 'paste-status';
+    document.getElementById('paste-preview').classList.remove('visible');
+    document.getElementById('btn-paste-add').style.display    = 'none';
+    document.getElementById('btn-paste-detect').style.display = '';
+    document.getElementById('btn-paste-detect').disabled      = false;
+    detectedWords = [];
+    document.getElementById('paste-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('paste-input').focus(), 60);
+  }
+
+  function closePasteModal() {
+    document.getElementById('paste-overlay').classList.remove('open');
+  }
+
+  async function runPasteDetect() {
+    const text = document.getElementById('paste-input').value.trim();
+    const btn  = document.getElementById('btn-paste-detect');
+    const status = document.getElementById('paste-status');
+    if (!text) { status.textContent = 'Please paste some text first.'; status.className='paste-status err'; return; }
+
+    btn.disabled = true;
+    status.className = 'paste-status';
+    status.textContent = '識別中 · Detecting…';
+
+    const prompt = `You are a Chinese language assistant. The user has pasted a vocabulary list in an unknown format.
+Extract every Chinese vocabulary word you can find. For each word return:
+- chinese: the Chinese character(s)
+- pinyin: the romanized pinyin pronunciation (with tone marks if present, otherwise without)
+- english: the English meaning
+
+The text may use any separator style: spaces, dashes, equals, parentheses, numbered lists, etc.
+If pinyin is missing, leave it as an empty string.
+If English is missing, leave it as an empty string.
+
+Respond ONLY with valid JSON array, no markdown, no commentary:
+[{"chinese":"...","pinyin":"...","english":"..."},...]
+
+Text to parse:
+${text}`;
+
+    try {
+      const data  = await callAPI({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] });
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      const raw   = data.content?.find(b => b.type==='text')?.text || '[]';
+      detectedWords = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+      if (!detectedWords.length) {
+        status.textContent = 'No words detected — try rephrasing or adding more context.';
+        status.className = 'paste-status err';
+        btn.disabled = false;
+        return;
+      }
+
+      renderPastePreview();
+      status.textContent = detectedWords.length + ' word' + (detectedWords.length!==1?'s':'') + ' detected';
+      status.className = 'paste-status ok';
+      document.getElementById('btn-paste-add').style.display    = '';
+      document.getElementById('btn-paste-detect').style.display = 'none';
+    } catch(e) {
+      status.textContent = 'Detection failed: ' + (e.message || 'check Settings → API Configuration');
+      status.className = 'paste-status err';
+      btn.disabled = false;
+    }
+  }
+
+  function renderPastePreview() {
+    const tbody = document.getElementById('paste-preview-body');
+    tbody.innerHTML = detectedWords.map((w,i) => `
+      <tr id="paste-row-${i}">
+        <td style="color:var(--ink-faint);font-size:11px;">${i+1}</td>
+        <td class="paste-char-cell">${w.chinese||'—'}</td>
+        <td class="paste-pinyin-cell">${w.pinyin||''}</td>
+        <td style="font-size:12px;">${w.english||''}</td>
+        <td><button class="paste-row-del" onclick="removePasteWord(${i})">×</button></td>
+      </tr>`).join('');
+    document.getElementById('paste-preview').classList.add('visible');
+  }
+
+  function removePasteWord(idx) {
+    detectedWords.splice(idx, 1);
+    if (!detectedWords.length) {
+      document.getElementById('paste-preview').classList.remove('visible');
+      document.getElementById('btn-paste-add').style.display    = 'none';
+      document.getElementById('btn-paste-detect').style.display = '';
+      document.getElementById('btn-paste-detect').disabled      = false;
+      document.getElementById('paste-status').textContent = '';
+      return;
+    }
+    renderPastePreview();
+    document.getElementById('paste-status').textContent = detectedWords.length + ' word' + (detectedWords.length!==1?'s':'') + ' ready to add';
+  }
+
+  function addDetectedWords() {
+    if (!detectedWords.length || activeSetIdx === null) return;
+    detectedWords.forEach(w => {
+      if (w.chinese || w.english) wordSets[activeSetIdx].words.push(w);
+    });
+    saveWordSets();
+    renderWordTable();
+    renderSetList();
+    closePasteModal();
+  }
+
+</script>
+
+<!-- Word Bank: New Set Modal -->
+<div class="wb-modal-overlay" id="wb-modal-overlay">
+  <div class="wb-modal">
+    <h3>新詞組 · New Word Set</h3>
+    <div class="wb-input-group">
+      <span class="wb-input-label">Set Name</span>
+      <input class="wb-input" id="wb-modal-name" placeholder="e.g. Unit 4 · Colors" style="width:100%;" onkeydown="if(event.key==='Enter')confirmNewSet()" />
+    </div>
+    <div class="wb-modal-actions">
+      <button class="btn-modal-cancel" onclick="closeNewSetModal()">取消 Cancel</button>
+      <button class="btn-modal-confirm" onclick="confirmNewSet()">創建 Create</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── Generate Config Modal ── -->
+<div class="gen-overlay" id="gen-overlay">
+  <div class="gen-modal">
+    <div class="gen-modal-head">
+      <div class="gen-modal-hanzi" id="gen-modal-hanzi">卷</div>
+      <div>
+        <div class="gen-modal-title" id="gen-modal-title">Generate Worksheet</div>
+        <div class="gen-modal-subtitle" id="gen-modal-subtitle">Configure question types and counts</div>
+      </div>
+    </div>
+    <div class="gen-modal-body" id="gen-modal-body">
+      <!-- injected by JS -->
+    </div>
+    <div class="gen-modal-foot">
+      <div class="gen-status" id="gen-status"></div>
+      <button class="btn-gen-cancel" onclick="closeGenModal()">取消 Cancel</button>
+      <button class="btn-gen-go" id="btn-gen-go" onclick="runGenerate()">生成 Generate</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Output Viewer Modal ── -->
+<div class="out-overlay" id="out-overlay">
+  <div class="out-modal">
+    <div class="out-head">
+      <div class="out-head-left">
+        <div>
+          <div class="out-head-title" id="out-title">Generated Output</div>
+          <div class="out-head-sub" id="out-sub"></div>
+        </div>
+      </div>
+      <div class="out-actions">
+        <button class="btn-out-action" id="btn-out-print" onclick="printOutput()">列印 Print</button>
+        <button class="btn-out-close" onclick="closeOutput()">×</button>
+      </div>
+    </div>
+    <div class="out-body" id="out-body"></div>
+  </div>
+</div>
+
+</body>
+</html>
