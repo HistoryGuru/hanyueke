@@ -1,7 +1,7 @@
 {
   "name": "hanyuke-server",
   "version": "1.0.0",
-  "description": "汉语课 · Chinese Class — backend server",
+  "description": "\u6c49\u8bed\u8bfe \u00b7 Chinese Class \u2014 backend server",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -17,7 +17,8 @@
     "dotenv": "^16.3.1",
     "node-fetch": "^3.3.2",
     "helmet": "^7.1.0",
-    "express-rate-limit": "^7.1.5"
+    "express-rate-limit": "^7.1.5",
+    "@supabase/supabase-js": "^2.39.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
