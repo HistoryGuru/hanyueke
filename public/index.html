@@ -4261,6 +4261,36 @@ ${text}`;
     await loadStream(activeClassroomId);
   }
 
+  async function viewAssignment(postId) {
+    // Fetch the post content_json and display it in the output viewer
+    try {
+      const res = await fetch(`/api/stream?classroom_id=${activeClassroomId}`);
+      const { posts } = await res.json();
+      const post = posts.find(p => p.id === postId);
+      if (!post) { alert('Could not load assignment.'); return; }
+
+      if (post.type === 'flashcards' && post.content_json?.words) {
+        // Flashcard view
+        fcCards = post.content_json.words;
+        fcIdx = 0; fcFlipped = false;
+        lastGenOutput = { type: 'flashcards', title: post.title, content_json: post.content_json, word_set_name: post.word_set_name };
+        document.getElementById('out-title').textContent = '學習卡 Flashcards';
+        document.getElementById('out-sub').textContent   = post.title;
+        document.getElementById('btn-out-print').style.display  = 'none';
+        document.getElementById('btn-out-assign').style.display = 'none';
+        renderFCView();
+        document.getElementById('out-overlay').classList.add('open');
+
+      } else if ((post.type === 'worksheet' || post.type === 'test') && post.content_json) {
+        // Worksheet / test view
+        renderDocOutput(post.content_json, post.type === 'test');
+        document.getElementById('btn-out-assign').style.display = 'none'; // students can't re-assign
+      } else {
+        alert('No viewable content for this assignment.');
+      }
+    } catch(e) { alert('Could not load: ' + e.message); }
+  }
+
   async function gradeSubmission(postId, studentId) {
     const grade = document.getElementById(`grade-${postId}-${studentId}`)?.value.trim();
     if (!grade) return;
