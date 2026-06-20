@@ -2212,7 +2212,7 @@
                 API keys are stored securely as <strong>environment variables</strong> on the server —
                 they are never sent to the browser.<br>
                 To update them, go to your <strong>Render dashboard → Environment</strong> and edit
-                <code style="font-size:11px;background:var(--parchment);padding:1px 5px;">ANTHROPIC_KEY</code>,
+                <code style="font-size:11px;background:var(--parchment);padding:1px 5px;">GROQ_KEY</code>,
                 <code style="font-size:11px;background:var(--parchment);padding:1px 5px;">SUPABASE_URL</code>, and
                 <code style="font-size:11px;background:var(--parchment);padding:1px 5px;">SUPABASE_ANON</code>.
               </div>
@@ -2778,12 +2778,12 @@
       const probe = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1, messages:[{role:'user',content:'hi'}] })
+        body: JSON.stringify({ max_tokens:1, messages:[{role:'user',content:'hi'}] })
       }).then(r => r.json());
-      if (probe.error && probe.error.includes && probe.error.includes('ANTHROPIC_KEY')) {
-        aiDot.classList.remove('set'); aiLbl.textContent = 'ANTHROPIC_KEY not set on server';
+      if (probe.error && probe.error.includes && probe.error.includes('GROQ_KEY')) {
+        aiDot.classList.remove('set'); aiLbl.textContent = 'GROQ_KEY not set on server';
       } else {
-        aiDot.classList.add('set'); aiLbl.textContent = 'Connected · claude-sonnet-4-6';
+        aiDot.classList.add('set'); aiLbl.textContent = 'Connected · Groq llama-3.3-70b';
       }
     } catch(e) {
       aiDot.classList.remove('set'); aiLbl.textContent = 'Could not reach server';
@@ -2960,7 +2960,7 @@ Respond ONLY with valid JSON, no markdown fences:
 }`;
 
     try {
-      const data = await callAPI({ model:'claude-sonnet-4-6', max_tokens:2000, messages:[{role:'user',content:prompt}] });
+      const data = await callAPI({ max_tokens:2000, messages:[{role:'user',content:prompt}] });
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
       const text = data.content?.find(b=>b.type==='text')?.text||'';
       const doc  = JSON.parse(text.replace(/```json|```/g,'').trim());
@@ -3409,7 +3409,7 @@ Text to parse:
 ${text}`;
 
     try {
-      const data  = await callAPI({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] });
+      const data  = await callAPI({ max_tokens: 1000, messages: [{ role: 'user', content: prompt }] });
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
       const raw   = data.content?.find(b => b.type==='text')?.text || '[]';
       detectedWords = JSON.parse(raw.replace(/```json|```/g,'').trim());
