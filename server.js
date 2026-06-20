@@ -11,16 +11,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ── Security headers (relaxed for fonts / CDN scripts the HTML needs) ──
+// ── Security headers ──
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc:  ["'self'"],
-      scriptSrc:   ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "cdnjs.cloudflare.com", "fonts.googleapis.com"],
-      styleSrc:    ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
-      fontSrc:     ["'self'", "fonts.gstatic.com"],
-      connectSrc:  ["'self'", process.env.SUPABASE_URL || '*'],
-      imgSrc:      ["'self'", "data:"],
+      defaultSrc:     ["'self'"],
+      scriptSrc:      ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net", "cdnjs.cloudflare.com", "fonts.googleapis.com"],
+      scriptSrcAttr:  ["'unsafe-inline'"],   // allows onclick= handlers
+      styleSrc:       ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
+      fontSrc:        ["'self'", "fonts.gstatic.com"],
+      connectSrc:     ["'self'", "https://*.supabase.co", "https://api.groq.com"],
+      imgSrc:         ["'self'", "data:"],
     }
   }
 }));
@@ -48,29 +49,42 @@ app.get('/health', (_req, res) => res.json({ ok: true, ts: Date.now() }));
 
 // ── Anthropic proxy endpoint ──
 app.post('/api/ai', aiLimiter, async (req, res) => {
-  const apiKey = process.env.ANTHROPIC_KEY;
+  const apiKey = process.env.GROQ_KEY;
   if (!apiKey) {
-    return res.status(503).json({ error: 'ANTHROPIC_KEY not configured on server.' });
+    return res.status(503).json({ error: 'GROQ_KEY not configured on server.' });
   }
 
   try {
-    const body = req.body;
+    const { messages, max_tokens } = req.body;
 
-    // Safety: always enforce the model and cap tokens so clients can't abuse
-    body.model      = 'claude-sonnet-4-6';
-    body.max_tokens = Math.min(body.max_tokens || 1000, 4000);
+    // Groq uses the OpenAI-compatible chat completions format
+    const groqBody = {
+      model:       'llama-3.3-70b-versatile',   // fast, capable Groq model
+      messages,                                   // same format as OpenAI / Anthropic
+      max_tokens:  Math.min(max_tokens || 1000, 4000),
+      temperature: 0.3,
+    };
 
-    const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+    const upstream = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method:  'POST',
       headers: {
-        'Content-Type':      'application/json',
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(groqBody),
     });
 
     const data = await upstream.json();
+
+    // Normalise to the shape the frontend expects:
+    // Anthropic: data.content[0].text
+    // We'll return the same envelope so the frontend needs no changes.
+    if (data.choices && data.choices[0]) {
+      const text = data.choices[0].message?.content || '';
+      return res.json({ content: [{ type: 'text', text }] });
+    }
+
+    // Pass through errors from Groq as-is
     return res.status(upstream.status).json(data);
 
   } catch (err) {
