@@ -1664,6 +1664,7 @@
       background:var(--surface); border:1px solid var(--parchment-dk);
       width:580px; max-width:95vw; max-height:90vh;
       display:flex; flex-direction:column; position:relative; overflow:hidden;
+      /* Ensure footer never gets pushed off screen */
     }
     .paste-modal::before,.paste-modal::after {
       content:""; position:absolute;
@@ -1678,7 +1679,7 @@
     .paste-modal-hanzi { font-family:"Noto Serif SC",serif; font-size:26px; font-weight:300; color:var(--gold); }
     .paste-modal-title { font-family:"Noto Serif SC",serif; font-size:14px; color:var(--ink); letter-spacing:1px; }
     .paste-modal-sub   { font-size:11px; font-style:italic; color:var(--ink-faint); margin-top:2px; }
-    .paste-modal-body  { padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:1rem; flex:1; overflow-y:auto; }
+    .paste-modal-body  { padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:1rem; flex:1; overflow-y:auto; min-height:0; }
     .paste-examples {
       font-size:11px; font-style:italic; color:var(--ink-faint);
       border-left:2px solid var(--border-gold); padding-left:10px; line-height:1.9;
@@ -1725,7 +1726,10 @@
 
     .paste-modal-foot {
       padding:1rem 1.5rem; border-top:1px solid var(--parchment-dk);
-      display:flex; gap:10px; justify-content:flex-end; align-items:center; flex-shrink:0;
+      display:flex; gap:10px; justify-content:flex-end; align-items:center;
+      flex-shrink:0; /* always visible — never scrolls away */
+      background: var(--surface);
+      position:sticky; bottom:0; z-index:1;
     }
     .paste-status { flex:1; font-size:11px; font-style:italic; color:var(--ink-faint); }
     .paste-status.err { color:var(--vermilion); }
@@ -1740,9 +1744,10 @@
     .btn-paste-add {
       padding:9px 20px; font-family:"Noto Serif SC",serif; font-size:11px; letter-spacing:2px;
       background:var(--vermilion); color:#FDF8F3; border:1px solid var(--vermilion); cursor:pointer;
-      transition:background 0.15s; display:none;
+      transition:background 0.15s, opacity 0.15s;
     }
     .btn-paste-add:hover { background:var(--vermilion-dk); }
+    .btn-paste-add:disabled { opacity:0.35; cursor:not-allowed; }
     .btn-paste-cancel {
       padding:9px 16px; font-family:"Noto Serif SC",serif; font-size:11px; letter-spacing:1px;
       background:transparent; color:var(--ink-faint); border:1px solid var(--border-ink); cursor:pointer;
@@ -3820,7 +3825,7 @@ body{font-family:"Noto Serif",serif;color:#1C1814;padding:2cm;max-width:800px;ma
     document.getElementById('paste-status').textContent = '';
     document.getElementById('paste-status').className   = 'paste-status';
     document.getElementById('paste-preview').classList.remove('visible');
-    document.getElementById('btn-paste-add').style.display    = 'none';
+    document.getElementById('btn-paste-add').disabled = true;
     document.getElementById('btn-paste-detect').style.display = '';
     document.getElementById('btn-paste-detect').disabled      = false;
     detectedWords = [];
@@ -3875,7 +3880,7 @@ ${text}`;
       renderPastePreview();
       status.textContent = detectedWords.length + ' word' + (detectedWords.length!==1?'s':'') + ' detected';
       status.className = 'paste-status ok';
-      document.getElementById('btn-paste-add').style.display    = '';
+      document.getElementById('btn-paste-add').disabled = false;
       document.getElementById('btn-paste-detect').style.display = 'none';
     } catch(e) {
       status.textContent = 'Detection failed: ' + (e.message || 'check Settings → API Configuration');
@@ -3915,7 +3920,7 @@ ${text}`;
     detectedWords.splice(idx, 1);
     if (!detectedWords.length) {
       document.getElementById('paste-preview').classList.remove('visible');
-      document.getElementById('btn-paste-add').style.display    = 'none';
+      document.getElementById('btn-paste-add').disabled = true;
       document.getElementById('btn-paste-detect').style.display = '';
       document.getElementById('btn-paste-detect').disabled      = false;
       document.getElementById('paste-status').textContent = '';
@@ -4453,7 +4458,7 @@ ${text}`;
       <div class="paste-modal-hanzi">貼</div>
       <div>
         <div class="paste-modal-title">Paste &amp; Detect</div>
-        <div class="paste-modal-sub">Paste text in any format — Claude extracts the vocabulary automatically</div>
+        <div class="paste-modal-sub">Paste text in any format — pinyin and definitions are detected automatically</div>
       </div>
     </div>
     <div class="paste-modal-body">
@@ -4479,7 +4484,7 @@ ${text}`;
       <div class="paste-status" id="paste-status"></div>
       <button class="btn-paste-cancel" onclick="closePasteModal()">取消 Cancel</button>
       <button class="btn-paste-detect" id="btn-paste-detect" onclick="runPasteDetect()">識別 Detect</button>
-      <button class="btn-paste-add" id="btn-paste-add" onclick="addDetectedWords()">加入全部 Add All</button>
+      <button class="btn-paste-add" id="btn-paste-add" onclick="addDetectedWords()" disabled>加入全部 Add All</button>
     </div>
   </div>
 </div>
