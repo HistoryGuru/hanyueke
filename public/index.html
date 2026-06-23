@@ -2136,6 +2136,146 @@
       padding: 3px 12px; background: var(--surface);
     }
 
+
+    /* ── Advanced Mode ── */
+    .adv-mode-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border: 1px solid var(--border-gold);
+      background: var(--gold-lt);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .adv-mode-toggle-row:hover { background: #EDE0C4; }
+    .adv-mode-left { display: flex; align-items: center; gap: 10px; }
+    .adv-mode-hanzi {
+      font-family: "Noto Serif SC", serif;
+      font-size: 20px; color: var(--gold); line-height: 1;
+    }
+    .adv-mode-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 12px; color: var(--ink); letter-spacing: 1px;
+    }
+    .adv-mode-sub {
+      font-size: 10px; font-style: italic; color: var(--ink-faint); margin-top: 2px;
+    }
+    /* toggle switch */
+    .adv-toggle-switch {
+      position: relative; width: 38px; height: 20px; flex-shrink: 0;
+    }
+    .adv-toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .adv-toggle-slider {
+      position: absolute; inset: 0; background: var(--parchment-dk);
+      border-radius: 20px; transition: background 0.2s;
+    }
+    .adv-toggle-slider::before {
+      content: ""; position: absolute;
+      width: 14px; height: 14px; left: 3px; top: 3px;
+      background: white; border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .adv-toggle-switch input:checked + .adv-toggle-slider { background: var(--gold); }
+    .adv-toggle-switch input:checked + .adv-toggle-slider::before { transform: translateX(18px); }
+
+    /* Concept analysis area */
+    .adv-concept-area {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-gold);
+      border-top: none;
+      background: var(--surface);
+    }
+    .adv-concept-area.visible { display: flex; }
+    .adv-analyze-btn {
+      align-self: flex-start;
+      padding: 8px 18px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px; letter-spacing: 2px;
+      border: 1px solid var(--gold);
+      background: transparent; color: var(--gold);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .adv-analyze-btn:hover { background: var(--gold-lt); }
+    .adv-analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .adv-analyze-status {
+      font-size: 11px; font-style: italic; color: var(--ink-faint);
+    }
+
+    /* Concept cards */
+    .adv-concepts-grid {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .concept-card {
+      border: 1px solid var(--parchment-dk);
+      background: var(--parchment-lt);
+      padding: 12px 14px;
+      display: flex; align-items: flex-start;
+      gap: 12px; position: relative;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .concept-card.accepted {
+      border-color: var(--gold);
+      background: var(--gold-lt);
+    }
+    .concept-card.rejected {
+      opacity: 0.4;
+    }
+    .concept-card-icon {
+      font-family: "Noto Serif SC", serif;
+      font-size: 22px; color: var(--gold);
+      flex-shrink: 0; line-height: 1; margin-top: 2px;
+    }
+    .concept-card-body { flex: 1; }
+    .concept-card-title {
+      font-family: "Noto Serif SC", serif;
+      font-size: 13px; color: var(--ink); letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .concept-card-desc {
+      font-size: 11px; color: var(--ink-faint);
+      font-style: italic; line-height: 1.6;
+    }
+    .concept-card-example {
+      font-family: "Noto Serif SC", serif;
+      font-size: 12px; color: var(--ink-mid);
+      margin-top: 6px; padding: 4px 8px;
+      background: var(--surface); border-left: 2px solid var(--border-gold);
+      display: inline-block;
+    }
+    .concept-card-actions {
+      display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start;
+    }
+    .btn-concept-accept {
+      padding: 5px 12px;
+      font-family: "Noto Serif SC", serif; font-size: 10px; letter-spacing: 1px;
+      border: 1px solid var(--border-gold); background: transparent;
+      color: var(--gold); cursor: pointer; transition: background 0.12s;
+    }
+    .btn-concept-accept:hover { background: var(--gold-lt); }
+    .btn-concept-accept.active {
+      background: var(--gold); color: #FDF8F3; border-color: var(--gold);
+    }
+    .btn-concept-reject {
+      padding: 5px 10px;
+      font-family: "Noto Serif SC", serif; font-size: 10px;
+      border: 1px solid var(--border-ink); background: transparent;
+      color: var(--ink-faint); cursor: pointer; transition: background 0.12s;
+    }
+    .btn-concept-reject:hover { background: var(--parchment); }
+    .btn-concept-reject.active {
+      background: var(--parchment-dk); color: var(--ink-faint);
+    }
+    .adv-accepted-note {
+      font-size: 11px; font-style: italic; color: var(--gold);
+      border-left: 2px solid var(--border-gold); padding-left: 10px; line-height: 1.6;
+      display: none;
+    }
+    .adv-accepted-note.visible { display: block; }
+
     @media (max-width: 700px) {
       .auth-card { padding: 2rem 1.25rem 1.75rem; }
       .sidebar { width: 56px; }
@@ -3418,6 +3558,8 @@
       genValues = {};
       cfg.sections.forEach(k => { genValues[k] = { enabled: k==='mcq', count: SECTION_DEFS[k].max }; });
       genDifficulty = 'novice';
+      advancedModeOn = false;
+      suggestedConcepts = [];
       body.innerHTML = `
         <div class="gen-section">
           <div class="gen-section-title">Difficulty · 難度</div>
@@ -4566,6 +4708,132 @@ ${text}`;
     } catch(e) {
       status.textContent = e.message; status.className='assign-status err';
     } finally { btn.disabled = false; }
+  }
+
+
+  /* ─── Advanced Mode ─── */
+  let advancedModeOn   = false;
+  let suggestedConcepts = [];   // [{ title, description, example, icon, status: 'pending'|'accepted'|'rejected' }]
+
+  function toggleAdvancedMode() {
+    const chk = document.getElementById('adv-mode-chk');
+    const area = document.getElementById('adv-concept-area');
+    if (!chk || !area) return;
+    advancedModeOn = chk.checked;
+    area.classList.toggle('visible', advancedModeOn);
+    if (!advancedModeOn) {
+      suggestedConcepts = [];
+      document.getElementById('adv-concepts-grid').innerHTML = '';
+      document.getElementById('adv-analyze-status').textContent = '';
+      document.getElementById('adv-accepted-note').classList.remove('visible');
+    }
+  }
+
+  async function analyzeWordSet() {
+    const set = wordSets[activeSetIdx];
+    if (!set || !set.words.length) return;
+    const btn    = document.getElementById('btn-analyze-concepts');
+    const status = document.getElementById('adv-analyze-status');
+    const grid   = document.getElementById('adv-concepts-grid');
+    btn.disabled = true;
+    status.textContent = '分析中 · Analysing…';
+    grid.innerHTML = '';
+    document.getElementById('adv-accepted-note').classList.remove('visible');
+
+    const wordList = set.words.map(w => `${w.chinese}(${w.pinyin})=${w.english}`).join(', ');
+
+    const prompt = `You are an expert Mandarin Chinese teacher analysing a vocabulary set to identify key grammar, cultural, or linguistic concepts worth emphasising in a worksheet or test.
+
+Vocabulary set: "${set.name}"
+Words: ${wordList}
+
+Identify between 1 and 3 key PEDAGOGICAL CONCEPTS that a student learning these words should master. These could include:
+- Grammar patterns (e.g. measure words/量词, verb complements, topic-comment structure)
+- Cultural context (e.g. how a word reflects Chinese culture or social norms)
+- Phonetic patterns (e.g. tone sandhi rules, common radicals shared across the set)
+- Usage distinctions (e.g. when to use one word vs another, formal vs informal)
+- Sentence patterns (e.g. 把-sentences, 是...的 emphasis structure)
+
+For each concept provide:
+- title: short name (e.g. "Measure Words 量词")
+- description: 1-2 sentences explaining why this concept matters for THIS word set
+- example: a short concrete example using words from the set (Chinese + English)
+- icon: a single Chinese character that symbolises the concept
+
+Respond ONLY with a valid JSON array of 1-3 objects, no markdown:
+[{"title":"...","description":"...","example":"...","icon":"..."},...]`;
+
+    try {
+      const data = await callAPI({ max_tokens: 800, messages: [{ role: 'user', content: prompt }] });
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      const raw  = data.content?.find(b => b.type === 'text')?.text || '[]';
+      suggestedConcepts = JSON.parse(raw.replace(/```json|```/g, '').trim())
+        .slice(0, 3)
+        .map(c => ({ ...c, status: 'pending' }));
+
+      if (!suggestedConcepts.length) {
+        status.textContent = 'No concepts found — try a larger word set.';
+        btn.disabled = false;
+        return;
+      }
+      status.textContent = suggestedConcepts.length + ' concept' + (suggestedConcepts.length > 1 ? 's' : '') + ' found — accept the ones you want to emphasise';
+      renderConceptCards();
+      btn.disabled = false;
+      btn.textContent = '重新分析 · Re-analyse';
+    } catch(e) {
+      status.textContent = 'Analysis failed: ' + e.message;
+      btn.disabled = false;
+    }
+  }
+
+  function renderConceptCards() {
+    const grid = document.getElementById('adv-concepts-grid');
+    grid.innerHTML = suggestedConcepts.map((c, i) => `
+      <div class="concept-card ${c.status === 'accepted' ? 'accepted' : c.status === 'rejected' ? 'rejected' : ''}" id="concept-card-${i}">
+        <div class="concept-card-icon">${c.icon || '概'}</div>
+        <div class="concept-card-body">
+          <div class="concept-card-title">${c.title}</div>
+          <div class="concept-card-desc">${c.description}</div>
+          <div class="concept-card-example">${c.example}</div>
+        </div>
+        <div class="concept-card-actions">
+          <button class="btn-concept-accept ${c.status === 'accepted' ? 'active' : ''}" onclick="setConceptStatus(${i}, 'accepted')">
+            ✓ Include
+          </button>
+          <button class="btn-concept-reject ${c.status === 'rejected' ? 'active' : ''}" onclick="setConceptStatus(${i}, 'rejected')">
+            ✕
+          </button>
+        </div>
+      </div>`).join('');
+    updateAcceptedNote();
+  }
+
+  function setConceptStatus(idx, status) {
+    suggestedConcepts[idx].status = suggestedConcepts[idx].status === status ? 'pending' : status;
+    renderConceptCards();
+  }
+
+  function updateAcceptedNote() {
+    const accepted = suggestedConcepts.filter(c => c.status === 'accepted');
+    const note     = document.getElementById('adv-accepted-note');
+    if (accepted.length) {
+      note.textContent = accepted.length + ' concept' + (accepted.length > 1 ? 's' : '') + ' will be woven into the generated content: ' + accepted.map(c => c.title).join(', ');
+      note.classList.add('visible');
+    } else {
+      note.classList.remove('visible');
+    }
+  }
+
+  function getAcceptedConceptsText() {
+    const accepted = suggestedConcepts.filter(c => c.status === 'accepted');
+    if (!accepted.length) return '';
+    return `
+KEY CONCEPTS TO EMPHASISE (weave these naturally into the questions — do not make them the only focus, but ensure each accepted concept appears in at least one question or part of the passage):
+${accepted.map((c, i) => `${i + 1}. ${c.title}
+   What it is: ${c.description}
+   Example: ${c.example}`).join('\n')}
+
+Make sure some questions specifically test understanding of these concepts, not just vocabulary recall.`;
   }
 
 </script>
