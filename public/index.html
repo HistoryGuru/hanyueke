@@ -2113,6 +2113,29 @@
       margin-top: 3px; line-height: 1.4;
     }
 
+
+    /* ── Fill-in-the-blank word bank ── */
+    .ws-word-bank {
+      border: 1px solid var(--parchment-dk);
+      padding: 10px 14px;
+      margin-bottom: 1rem;
+      background: var(--parchment-lt);
+    }
+    .ws-word-bank-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 9px; letter-spacing: 2.5px; color: var(--ink-faint);
+      text-transform: uppercase; margin-bottom: 8px; display: block;
+    }
+    .ws-word-bank-words {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .ws-word-bank-chip {
+      font-family: "Noto Serif SC", serif;
+      font-size: 14px; color: var(--ink);
+      border: 1px solid var(--border-ink);
+      padding: 3px 12px; background: var(--surface);
+    }
+
     @media (max-width: 700px) {
       .auth-card { padding: 2rem 1.25rem 1.75rem; }
       .sidebar { width: 56px; }
@@ -3557,7 +3580,7 @@ ${jsonFormat}`;
 
     const sectionLines = enabled.map(([k,v]) => {
       if (k==='mcq')      return `- ${v.count} multiple-choice questions (4 options A/B/C/D each)`;
-      if (k==='fitb')     return `- ${v.count} fill-in-the-blank sentences (use ___ for blank)`;
+      if (k==='fitb')     return `- ${v.count} fill-in-the-blank sentences (use ___ for blank, include a shuffled word_bank array for the section)`;
       if (k==='passage')  return `- 1 short reading passage using the vocabulary, followed by ${v.count} comprehension questions`;
       if (k==='sentence') return `- ${v.count} create-a-sentence prompts`;
       return '';
@@ -3611,6 +3634,17 @@ ${jsonFormat}`;
     (doc.sections||[]).forEach((sec,si) => {
       h += `<div class="ws-section"><div class="ws-section-head"><div class="ws-section-num">${ROMAN[si]||si+1}</div><div class="ws-section-title">${sec.title}</div></div>`;
       if (sec.type==='passage'&&sec.passage) h += `<div class="ws-passage">${sec.passage}</div>`;
+      // Word bank for fill-in-the-blank sections
+      if (sec.type==='fitb' && sec.word_bank && sec.word_bank.length) {
+        const isNative = doc._difficulty === 'native';
+        const bankLabel = isNative ? '詞庫 · 從以下詞語中選擇填入' : 'Word Bank · Choose from the words below';
+        h += `<div class="ws-word-bank">
+          <span class="ws-word-bank-label">${bankLabel}</span>
+          <div class="ws-word-bank-words">
+            ${sec.word_bank.map(w => `<span class="ws-word-bank-chip">${w}</span>`).join('')}
+          </div>
+        </div>`;
+      }
       (sec.questions||[]).forEach((q,qi) => {
         h += `<div class="ws-q">`;
         if (sec.type==='mcq') {
@@ -3740,6 +3774,10 @@ body{font-family:"Noto Serif",serif;color:#1C1814;padding:2cm;max-width:800px;ma
 .ws-choices li::before{content:attr(data-letter)". ";color:#8A7E72;}
 .ws-answer-line{border-bottom:1px solid #E8DFD0;height:.7cm;margin:4px 0;}
 .ws-passage{background:#FBF8F3;border:1px solid #E8DFD0;padding:.4cm .6cm;font-size:10pt;line-height:2;margin-bottom:.5cm;font-family:"Noto Serif SC",serif;}
+.ws-word-bank{border:1px solid #E8DFD0;padding:8px 12px;margin-bottom:.6cm;background:#FBF8F3;}
+.ws-word-bank-label{font-family:"Noto Serif SC",serif;font-size:7pt;letter-spacing:2px;color:#8A7E72;text-transform:uppercase;display:block;margin-bottom:6px;}
+.ws-word-bank-words{display:flex;flex-wrap:wrap;gap:6px;}
+.ws-word-bank-chip{font-family:"Noto Serif SC",serif;font-size:12pt;color:#1C1814;border:1px solid #1C1814;padding:2px 10px;}
 @media print{body{padding:1.5cm;}@page{margin:1.5cm;}}
 </style></head><body>${window._lastDocHTML||''}</body></html>`);
     w.document.close();
