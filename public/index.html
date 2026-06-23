@@ -2075,6 +2075,44 @@
     .paste-edit-input:hover  { border-bottom-color: var(--parchment-dk); }
     .paste-edit-input:focus  { border-bottom-color: var(--vermilion); background: var(--parchment-lt); }
 
+
+    /* ── Difficulty selector ── */
+    .diff-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .diff-card {
+      border: 1.5px solid var(--border-ink);
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      background: transparent;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+    }
+    .diff-card:hover { border-color: var(--gold); background: var(--gold-lt); }
+    .diff-card.selected { border-color: var(--vermilion); background: var(--vermilion-lt); }
+    .diff-card.selected::after {
+      content: "✓"; position: absolute; top: 4px; right: 6px;
+      font-size: 9px; color: var(--vermilion);
+    }
+    .diff-card input[type="radio"] { display: none; }
+    .diff-hanzi {
+      font-family: "Noto Serif SC", serif;
+      font-size: 20px; color: var(--ink-mid); display: block; margin-bottom: 4px;
+    }
+    .diff-card.selected .diff-hanzi { color: var(--vermilion); }
+    .diff-label {
+      font-family: "Noto Serif SC", serif;
+      font-size: 11px; color: var(--ink); letter-spacing: 0.5px;
+    }
+    .diff-sub {
+      font-size: 10px; color: var(--ink-faint); font-style: italic;
+      margin-top: 3px; line-height: 1.4;
+    }
+
     @media (max-width: 700px) {
       .auth-card { padding: 2rem 1.25rem 1.75rem; }
       .sidebar { width: 56px; }
@@ -3356,9 +3394,33 @@
     } else {
       genValues = {};
       cfg.sections.forEach(k => { genValues[k] = { enabled: k==='mcq', count: SECTION_DEFS[k].max }; });
+      genDifficulty = 'novice';
       body.innerHTML = `
         <div class="gen-section">
-          <div class="gen-section-title">Question Types</div>
+          <div class="gen-section-title">Difficulty · 難度</div>
+          <div class="diff-row">
+            <label class="diff-card selected" id="diff-novice">
+              <input type="radio" name="gen-diff" value="novice" checked onchange="selectDiff('novice')" />
+              <span class="diff-hanzi">初</span>
+              <div class="diff-label">Novice</div>
+              <div class="diff-sub">Simple vocab recall, English instructions</div>
+            </label>
+            <label class="diff-card" id="diff-advanced">
+              <input type="radio" name="gen-diff" value="advanced" onchange="selectDiff('advanced')" />
+              <span class="diff-hanzi">進</span>
+              <div class="diff-label">Advanced</div>
+              <div class="diff-sub">Varied question styles, deeper comprehension</div>
+            </label>
+            <label class="diff-card" id="diff-native">
+              <input type="radio" name="gen-diff" value="native" onchange="selectDiff('native')" />
+              <span class="diff-hanzi">通</span>
+              <div class="diff-label">Native Speaker</div>
+              <div class="diff-sub">All instructions in Chinese, harder passages</div>
+            </label>
+          </div>
+        </div>
+        <div class="gen-section">
+          <div class="gen-section-title">Question Types · 題型</div>
           ${cfg.sections.map(k => {
             const d = SECTION_DEFS[k]; const v = genValues[k];
             return `<div class="gen-row" id="gen-row-${k}">
@@ -3395,6 +3457,91 @@
     document.getElementById('val-'+key).textContent = v.count;
   }
 
+  let genDifficulty = 'novice';
+
+  function selectDiff(level) {
+    genDifficulty = level;
+    ['novice','advanced','native'].forEach(d => {
+      document.getElementById('diff-'+d).classList.toggle('selected', d === level);
+    });
+  }
+
+  function buildPrompt(set, sections, isTest, difficulty) {
+    const wordList = set.words.map(w=>`${w.chinese}(${w.pinyin})=${w.english}`).join(', ');
+    const docType  = isTest ? 'test' : 'worksheet';
+    const jsonFormat = `Respond ONLY with valid JSON, no markdown fences:
+{
+  "title": "...",
+  "sections": [
+    {
+      "type": "mcq"|"fitb"|"passage"|"sentence",
+      "title": "Section title in the appropriate language",
+      "passage": "...(passage type only)",
+      "questions": [{ "text": "...", "choices": ["A. ...","B. ...","C. ...","D. ..."], "answer": "..." }]
+    }
+  ]
+}`;
+
+    if (difficulty === 'novice') {
+      return `You are a Chinese language teacher creating a ${docType} for beginner K-5 students who are just starting to learn Chinese.
+Vocabulary set: "${set.name}"
+Words: ${wordList}
+
+Difficulty level: NOVICE — Keep questions simple and straightforward.
+- MCQ: ask "What is the Chinese word for [English]?" or "What does [Chinese character] mean?" with clearly different options
+- Fill-in-the-blank: simple sentences with one obvious missing word
+- Reading passage: very short (~60 words), simple vocabulary, basic sentence structure
+- Create-a-sentence: give the English word and ask students to write it in Chinese
+- All instructions and questions must be in English
+- Title the document in English
+
+Generate these sections:
+${sections}
+
+${jsonFormat}`;
+    }
+
+    if (difficulty === 'advanced') {
+      return `You are a Chinese language teacher creating a ${docType} for advanced K-5 students with solid Chinese foundations.
+Vocabulary set: "${set.name}"
+Words: ${wordList}
+
+Difficulty level: ADVANCED — Use varied, challenging question styles that go beyond simple recall.
+- MCQ: use nuanced questions such as: which word fits the context of this sentence, which character has the same radical as X, what is the antonym/synonym of X, choose the correct measure word, identify the correct tone, what does this word mean IN CONTEXT of a short sentence
+- Fill-in-the-blank: use full Chinese sentences (not English) with a word missing — students must know the character
+- Reading passage: ~100 words, uses mix of known and near-known vocabulary, tests inference and context understanding
+- Create-a-sentence: give a theme or situation (in English) and ask students to use the word in an original Chinese sentence
+- All instructions in English, but question content heavily uses Chinese characters
+- Title the document in English with difficulty noted
+
+Generate these sections:
+${sections}
+
+${jsonFormat}`;
+    }
+
+    if (difficulty === 'native') {
+      return `你是一位中文老师，正在为有流利中文基础的高级学生创建一份${isTest?'测验':'练习题'}。
+词汇集：「${set.name}」
+词汇：${wordList}
+
+难度等级：母语水平 — 所有题目指示必须用中文写。题目应具有挑战性，适合接近母语水平的学生。
+- 选择题：考查词语在语境中的使用、同义词、反义词、成语理解或词语搭配
+- 填空题：用完整的中文句子，需要填入语法正确且语义恰当的词语
+- 阅读理解：~150字的段落，使用丰富的词汇和较复杂的句子结构，理解题考查推断和深层含义
+- 造句题：给出一个情境或主题（用中文描述），要求学生用该词写出有意义的句子
+- 所有说明、题目、选项均须用中文
+- 标题用中文
+
+请生成以下题型：
+${sections.replace(/multiple-choice questions/g,'选择题').replace(/fill-in-the-blank/g,'填空题').replace(/reading passage/g,'阅读理解').replace(/comprehension questions/g,'理解题').replace(/create a sentence/g,'造句')}
+
+${jsonFormat}`;
+    }
+
+    return '';
+  }
+
   async function runGenerate() {
     const btn = document.getElementById('btn-gen-go');
     const status = document.getElementById('gen-status');
@@ -3408,46 +3555,31 @@
     status.className = 'gen-status';
     status.textContent = '生成中 · Generating…';
 
-    const sections = enabled.map(([k,v]) => {
+    const sectionLines = enabled.map(([k,v]) => {
       if (k==='mcq')      return `- ${v.count} multiple-choice questions (4 options A/B/C/D each)`;
       if (k==='fitb')     return `- ${v.count} fill-in-the-blank sentences (use ___ for blank)`;
-      if (k==='passage')  return `- 1 short reading passage (~80 words) using the vocabulary, followed by ${v.count} comprehension questions`;
-      if (k==='sentence') return `- ${v.count} "create a sentence" prompts (give the Chinese word, student writes sentence)`;
+      if (k==='passage')  return `- 1 short reading passage using the vocabulary, followed by ${v.count} comprehension questions`;
+      if (k==='sentence') return `- ${v.count} create-a-sentence prompts`;
       return '';
     }).join('\n');
 
-    const wordList = set.words.map(w=>`${w.chinese}(${w.pinyin})=${w.english}`).join(', ');
-    const isTest = genType==='test';
+    const isTest = genType === 'test';
+    const prompt = buildPrompt(set, sectionLines, isTest, genDifficulty);
 
-    const prompt = `You are a Chinese language teacher creating a ${isTest?'test':'worksheet'} for K-5 elementary students.
-Vocabulary set: "${set.name}"
-Words: ${wordList}
-
-Generate these sections:
-${sections}
-
-Respond ONLY with valid JSON, no markdown fences:
-{
-  "title": "${set.name} ${isTest?'Test':'Worksheet'}",
-  "sections": [
-    {
-      "type": "mcq"|"fitb"|"passage"|"sentence",
-      "title": "Section title",
-      "passage": "...(passage type only)",
-      "questions": [{ "text": "...", "choices": ["A...","B...","C...","D..."], "answer": "..." }]
-    }
-  ]
-}`;
+    // Diff label for document title suffix
+    const DIFF_LABEL = { novice: '', advanced: ' · Advanced', native: '' };
 
     try {
-      const data = await callAPI({ max_tokens:2000, messages:[{role:'user',content:prompt}] });
+      const data = await callAPI({ max_tokens: 3000, messages: [{role:'user', content: prompt}] });
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-      const text = data.content?.find(b=>b.type==='text')?.text||'';
+      const text = data.content?.find(b=>b.type==='text')?.text || '';
       const doc  = JSON.parse(text.replace(/```json|```/g,'').trim());
+      // Tag difficulty onto the doc so it shows in the output header
+      doc._difficulty = genDifficulty;
       closeGenModal();
       renderDocOutput(doc, isTest);
     } catch(e) {
-      status.textContent = 'Generation failed: '+(e.message||'check Settings → API Configuration');
+      status.textContent = 'Generation failed: ' + (e.message || 'check Settings → API Configuration');
       status.className = 'gen-status err';
       btn.disabled = false;
     }
@@ -3458,11 +3590,17 @@ Respond ONLY with valid JSON, no markdown fences:
     const set   = wordSets[activeSetIdx];
     const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
     const ROMAN = ['I','II','III','IV','V','VI'];
+    const DIFF_BADGE = {
+      novice:   { label: '初級 Novice',        color: '#2A6030' },
+      advanced: { label: '進階 Advanced',       color: '#7A5200' },
+      native:   { label: '母語 Native Speaker', color: '#C0392B' },
+    };
+    const diffInfo = DIFF_BADGE[doc._difficulty] || null;
     let h = `<div class="ws-doc">
       <div class="ws-doc-head">
         ${isTest?'<div class="ws-grade-box"><div class="ws-grade-label">成績 GRADE</div><div class="ws-grade-line"></div></div>':''}
         <div class="ws-doc-title">${doc.title||set.name}</div>
-        <div class="ws-doc-meta">${today}</div>
+        <div class="ws-doc-meta">${today}${diffInfo ? ' &nbsp;·&nbsp; <span style="color:'+diffInfo.color+';font-style:normal;">'+diffInfo.label+'</span>' : ''}</div>
       </div>
       <div class="ws-name-row">
         <div class="ws-name-field"><div class="ws-name-label">姓名 Name</div><div class="ws-name-line"></div></div>
