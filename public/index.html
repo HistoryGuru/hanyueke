@@ -2058,6 +2058,18 @@
 
     @media (max-width: 800px) { .stream-layout { grid-template-columns: 1fr; } }
 
+
+    /* Paste preview editable inputs */
+    .paste-edit-input {
+      width: 100%; padding: 3px 6px;
+      border: none; border-bottom: 1px solid transparent;
+      background: transparent; font-family: "Noto Serif", serif;
+      font-size: 12px; color: var(--ink); outline: none;
+      transition: border-color 0.15s;
+    }
+    .paste-edit-input:hover  { border-bottom-color: var(--parchment-dk); }
+    .paste-edit-input:focus  { border-bottom-color: var(--vermilion); background: var(--parchment-lt); }
+
     @media (max-width: 700px) {
       .auth-card { padding: 2rem 1.25rem 1.75rem; }
       .sidebar { width: 56px; }
@@ -3830,20 +3842,21 @@ body{font-family:"Noto Serif",serif;color:#1C1814;padding:2cm;max-width:800px;ma
     status.className = 'paste-status';
     status.textContent = '識別中 · Detecting…';
 
-    const prompt = `You are a Chinese language assistant. The user has pasted a vocabulary list in an unknown format.
-Extract every Chinese vocabulary word you can find. For each word return:
-- chinese: the Chinese character(s)
-- pinyin: the romanized pinyin pronunciation (with tone marks if present, otherwise without)
-- english: the English meaning
+    const prompt = `You are a Chinese language teacher assistant with expert knowledge of Mandarin Chinese.
+The user has pasted a vocabulary list. Your job is to:
+1. Extract every Chinese word or character from the text (ignore any non-Chinese filler words)
+2. For EACH word, provide ALL THREE fields — even if they are not in the original text:
+   - chinese: the Chinese character(s)
+   - pinyin: the full pinyin with tone marks (e.g. nǐ hǎo, jiā, xuéxiào). ALWAYS generate this from your knowledge if not provided.
+   - english: the English definition/translation. ALWAYS generate this from your knowledge if not provided.
 
-The text may use any separator style: spaces, dashes, equals, parentheses, numbered lists, etc.
-If pinyin is missing, leave it as an empty string.
-If English is missing, leave it as an empty string.
+The text may use any format: plain characters, numbered lists, dashes, equals signs, parentheses, etc.
+NEVER leave pinyin or english as empty strings — always fill them in using your knowledge of Mandarin.
 
-Respond ONLY with valid JSON array, no markdown, no commentary:
-[{"chinese":"...","pinyin":"...","english":"..."},...]
+Respond ONLY with a valid JSON array, no markdown fences, no commentary, no extra text:
+[{"chinese":"家","pinyin":"jiā","english":"home / family"},{"chinese":"学校","pinyin":"xuéxiào","english":"school"},...]
 
-Text to parse:
+Text to process:
 ${text}`;
 
     try {
@@ -3876,9 +3889,23 @@ ${text}`;
     tbody.innerHTML = detectedWords.map((w,i) => `
       <tr id="paste-row-${i}">
         <td style="color:var(--ink-faint);font-size:11px;">${i+1}</td>
-        <td class="paste-char-cell">${w.chinese||'—'}</td>
-        <td class="paste-pinyin-cell">${w.pinyin||''}</td>
-        <td style="font-size:12px;">${w.english||''}</td>
+        <td>
+          <input class="paste-edit-input paste-char-edit"
+            value="${(w.chinese||'').replace(/"/g,'&quot;')}"
+            oninput="detectedWords[${i}].chinese=this.value"
+            style="font-family:'Noto Serif SC',serif;font-size:17px;color:var(--vermilion);" />
+        </td>
+        <td>
+          <input class="paste-edit-input paste-pinyin-edit"
+            value="${(w.pinyin||'').replace(/"/g,'&quot;')}"
+            oninput="detectedWords[${i}].pinyin=this.value"
+            style="font-style:italic;color:var(--ink-faint);" />
+        </td>
+        <td>
+          <input class="paste-edit-input"
+            value="${(w.english||'').replace(/"/g,'&quot;')}"
+            oninput="detectedWords[${i}].english=this.value" />
+        </td>
         <td><button class="paste-row-del" onclick="removePasteWord(${i})">×</button></td>
       </tr>`).join('');
     document.getElementById('paste-preview').classList.add('visible');
@@ -4441,7 +4468,7 @@ ${text}`;
 
       <!-- Preview after detection -->
       <div class="paste-preview" id="paste-preview">
-        <div class="paste-preview-label">Detected Words — remove any mistakes before adding</div>
+        <div class="paste-preview-label">Detected Words — edit any cell, remove rows with ×, then add all</div>
         <table class="paste-table">
           <thead><tr><th>#</th><th>漢字</th><th>Pinyin</th><th>English</th><th></th></tr></thead>
           <tbody id="paste-preview-body"></tbody>
