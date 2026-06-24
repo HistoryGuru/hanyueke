@@ -1526,18 +1526,16 @@
     .out-overlay {
       position:fixed; inset:0;
       background:rgba(28,24,20,0.6);
-      z-index:300; display:none; align-items:flex-start; justify-content:center;
-      padding:2rem 1rem;
-      overflow-y:auto;
+      z-index:300; display:none;
+      overflow-y:auto;           /* block-level scroll — most reliable */
+      padding:2rem 1rem 4rem;
     }
-    .out-overlay.open { display:flex; }
+    .out-overlay.open { display:block; }
     .out-modal {
       background:var(--surface); border:1px solid var(--parchment-dk);
       width:700px; max-width:98vw;
       display:flex; flex-direction:column; position:relative;
-      margin-bottom:2rem;
-      flex-shrink:0;
-      align-self:flex-start;
+      margin:0 auto 2rem;        /* centered, block flow, scrolls naturally */
     }
     .out-body { padding:2rem; }
     .out-modal::before, .out-modal::after {
