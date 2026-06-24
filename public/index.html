@@ -1534,6 +1534,13 @@
       background:var(--surface); border:1px solid var(--parchment-dk);
       width:700px; max-width:98vw;
       display:flex; flex-direction:column; position:relative;
+      max-height:90vh;
+      margin-bottom: 2rem;
+    }
+    .out-body {
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
     }
     .out-modal::before, .out-modal::after {
       content:""; position:absolute;
@@ -1560,7 +1567,7 @@
       color:var(--ink-faint); padding:4px 8px; line-height:1;
     }
     .btn-out-close:hover { color:var(--ink); }
-    .out-body { padding:2rem; }
+    .out-body { padding:2rem; overflow-y:auto; flex:1; min-height:0; }
 
     /* Rendered output styles */
     .ws-doc { font-family:"Noto Serif",Georgia,serif; color:var(--ink); max-width:640px; margin:0 auto; }
@@ -3601,6 +3608,30 @@
               </div>
             </div>`;
           }).join('')}
+        </div>
+        <div class="gen-section">
+          <div class="gen-section-title">Advanced Mode · 深度模式</div>
+          <div class="adv-mode-toggle-row" onclick="toggleAdvancedMode()">
+            <div class="adv-mode-left">
+              <span class="adv-mode-hanzi">深</span>
+              <div>
+                <div class="adv-mode-label">Advanced Mode</div>
+                <div class="adv-mode-sub">AI analyses your word set and suggests key grammar &amp; culture concepts to emphasise</div>
+              </div>
+            </div>
+            <label class="adv-toggle-switch" onclick="event.stopPropagation()">
+              <input type="checkbox" id="adv-mode-chk" onchange="toggleAdvancedMode()" />
+              <span class="adv-toggle-slider"></span>
+            </label>
+          </div>
+          <div class="adv-concept-area" id="adv-concept-area">
+            <button class="adv-analyze-btn" id="btn-analyze-concepts" onclick="analyzeWordSet()">
+              分析 · Analyse Word Set
+            </button>
+            <div class="adv-analyze-status" id="adv-analyze-status"></div>
+            <div class="adv-concepts-grid" id="adv-concepts-grid"></div>
+            <div class="adv-accepted-note" id="adv-accepted-note"></div>
+          </div>
         </div>
         <div class="gen-note">Words: <strong>${set.words.length}</strong> from "<em>${set.name}</em>"</div>`;
     }
